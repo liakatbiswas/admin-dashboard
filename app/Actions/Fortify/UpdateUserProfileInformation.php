@@ -3,7 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -22,24 +22,33 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
-
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')->ignore($user->id),
-            ],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'avatar' => ['nullable', 'image', 'max:1024'],
         ])->validateWithBag('updateProfileInformation');
 
-        if ($input['email'] !== $user->email &&
-            $user instanceof MustVerifyEmail) {
-            $this->updateVerifiedUser($user, $input);
+        if (isset($input['avatar'])) {
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = $input['avatar']->store('avatars', 'public');
+        }
+
+        $data = [
+            'name' => $input['name'],
+            'email' => $input['email'],
+            'phone' => $input['phone'] ?? null,
+            'bio' => $input['bio'] ?? null,
+            'address' => $input['address'] ?? null,
+        ];
+
+        if ($input['email'] !== $user->email) {
+            $user->forceFill($data + ['email_verified_at' => null])->save();
+            $user->sendEmailVerificationNotification();
         } else {
-            $user->forceFill([
-                'name' => $input['name'],
-                'email' => $input['email'],
-            ])->save();
+            $user->forceFill($data)->save();
         }
     }
 
