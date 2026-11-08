@@ -29,10 +29,10 @@ class RolesAndSuperAdminSeeder extends Seeder
         Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
 
         $user = User::firstOrCreate(
-            ['email' => 'superadmin@example.com'],
+            ['email' => 'liakatbiswas@gmail.com'],
             [
                 'name' => 'Super Admin',
-                'password' => 'password', // 'hashed' cast নিজে hash করবে
+                'password' => '12345', // 'hashed' cast নিজে hash করবে
                 'email_verified_at' => now(),
                 'is_active' => true,
             ]
