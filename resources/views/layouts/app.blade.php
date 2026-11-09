@@ -20,6 +20,10 @@
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">Users</x-nav-link>
                 @endcan
 
+                @can('roles.manage')
+                    <x-nav-link :href="route('roles.index')" :active="request()->routeIs('roles.*')">Roles</x-nav-link>
+                @endcan
+
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
                 <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')">My Profile</x-nav-link>
 

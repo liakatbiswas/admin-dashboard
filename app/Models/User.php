@@ -14,6 +14,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -57,5 +58,12 @@ class User extends Authenticatable implements MustVerifyEmail
             ->when(! $this->hasRole('super-admin'), fn ($q) => $q->where('name', '!=', 'super-admin'))
             ->orderBy('name')
             ->pluck('name');
+    }
+
+    public function assignablePermissions(): Collection
+    {
+        return $this->hasRole('super-admin')
+            ? Permission::orderBy('name')->get()
+            : $this->getAllPermissions()->sortBy('name')->values();
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
@@ -32,4 +33,8 @@ Route::prefix('admin')->controller(UserController::class)->group(function () {
     Route::delete('users/{user}', 'destroy')->middleware('can:users.delete')->name('users.destroy');
     Route::patch('users/{user}/restore', 'restore')->middleware('can:users.delete')
         ->withTrashed()->name('users.restore');
+});
+
+Route::middleware('can:roles.manage')->prefix('admin')->group(function () {
+    Route::resource('roles', RoleController::class)->except('show');
 });
