@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
@@ -38,3 +39,7 @@ Route::prefix('admin')->controller(UserController::class)->group(function () {
 Route::middleware('can:roles.manage')->prefix('admin')->group(function () {
     Route::resource('roles', RoleController::class)->except('show');
 });
+
+Route::get('admin/activity', [ActivityLogController::class, 'index'])
+    ->middleware('can:activity.view')
+    ->name('activity.index');

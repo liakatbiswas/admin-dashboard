@@ -44,6 +44,11 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    protected $hidden = [
+        'password', 'remember_token',
+        'two_factor_secret', 'two_factor_recovery_codes',
+    ];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -52,12 +57,29 @@ class User extends Authenticatable implements MustVerifyEmail
             ->dontLogEmptyChanges();
     }
 
+    // public function assignableRoles(): Collection
+    // {
+    //     return Role::query()
+    //         ->when(! $this->hasRole('super-admin'), fn ($q) => $q->where('name', '!=', 'super-admin'))
+    //         ->orderBy('name')
+    //         ->pluck('name');
+    // }
+
     public function assignableRoles(): Collection
     {
-        return Role::query()
-            ->when(! $this->hasRole('super-admin'), fn ($q) => $q->where('name', '!=', 'super-admin'))
+        if ($this->hasRole('super-admin')) {
+            return Role::orderBy('name')->pluck('name');
+        }
+
+        $mine = $this->getAllPermissions()->pluck('name');
+
+        return Role::with('permissions')
+            ->where('name', '!=', 'super-admin')
             ->orderBy('name')
-            ->pluck('name');
+            ->get()
+            ->filter(fn ($role) => $role->permissions->pluck('name')->diff($mine)->isEmpty())
+            ->pluck('name')
+            ->values();
     }
 
     public function assignablePermissions(): Collection

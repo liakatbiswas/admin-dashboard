@@ -16,6 +16,10 @@
             <div class="p-4 text-lg font-semibold border-b border-gray-700">{{ config('app.name') }}</div>
             <nav class="p-2 space-y-1 text-sm">
 
+                @can('activity.view')
+                    <x-nav-link :href="route('activity.index')" :active="request()->routeIs('activity.*')">Activity Log</x-nav-link>
+                @endcan
+
                 @can('users.view')
                     <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">Users</x-nav-link>
                 @endcan
@@ -55,7 +59,7 @@
             </header>
 
             <main class="p-4 md:p-6">
-                @php
+                {{-- @php
                     $flash =
                         session('success') ??
                         match (session('status')) {
@@ -73,7 +77,21 @@
                             <p>{{ $error }}</p>
                         @endforeach
                     </div>
-                @endif
+                @endif --}}
+
+                @php
+                    $flash =
+                        session('success') ??
+                        match (session('status')) {
+                            'profile-information-updated' => 'প্রোফাইল আপডেট হয়েছে।',
+                            'password-updated' => 'পাসওয়ার্ড আপডেট হয়েছে।',
+                            'two-factor-authentication-enabled' => 'এবার QR স্ক্যান করে কোড দিয়ে নিশ্চিত করুন।',
+                            'two-factor-authentication-confirmed' => 'Two-factor চালু হয়েছে।',
+                            'two-factor-authentication-disabled' => 'Two-factor বন্ধ করা হয়েছে।',
+                            'recovery-codes-generated' => 'নতুন recovery code তৈরি হয়েছে।',
+                            default => session('status'),
+                        };
+                @endphp
 
                 {{ $slot }}
             </main>
