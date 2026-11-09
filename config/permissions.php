@@ -1,6 +1,12 @@
 <?php
 
 return [
+
+    'super_admin' => [
+        'email' => env('SUPER_ADMIN_EMAIL', 'superadmin@example.com'),
+        'password' => env('SUPER_ADMIN_PASSWORD', 'password'),
+    ],
+
     // এই role-গুলো মোছা বা rename করা যাবে না
     'protected_roles' => ['super-admin', 'student'],
 

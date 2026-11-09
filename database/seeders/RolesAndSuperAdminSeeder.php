@@ -5,9 +5,7 @@ namespace Database\Seeders;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndSuperAdminSeeder extends Seeder
 {
@@ -16,29 +14,30 @@ class RolesAndSuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-        foreach ([
-            'users.view', 'users.create', 'users.edit', 'users.delete',
-            'roles.manage', 'settings.manage', 'activity.view',
-        ] as $name) {
-            Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
-        }
+        $this->call(PermissionSeeder::class);
 
         $super = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
 
+        $email = config('permissions.super_admin.email');
+        $password = config('permissions.super_admin.password');
+
+        if (app()->isProduction() && $password === 'password') {
+            throw new \RuntimeException('Production-এ .env এ SUPER_ADMIN_PASSWORD সেট করুন।');
+        }
+
         $user = User::firstOrCreate(
-            ['email' => 'liakatbiswas@gmail.com'],
+            ['email' => $email],
             [
-                'name' => 'Super Admin',
-                'password' => '12345', // 'hashed' cast নিজে hash করবে
+                'name' => 'Md. Liakat Biswas',
+                'password' => $password,
                 'email_verified_at' => now(),
                 'is_active' => true,
             ]
         );
         $user->assignRole($super);
 
-        Setting::set('registration_enabled', '1');
+        Setting::firstOrCreate(['key' => 'registration_enabled'], ['value' => '1']);
+
     }
 }
