@@ -15,6 +15,11 @@
         <aside id="sidebar" class="hidden md:block w-64 shrink-0 bg-gray-900 text-gray-100">
             <div class="p-4 text-lg font-semibold border-b border-gray-700">{{ config('app.name') }}</div>
             <nav class="p-2 space-y-1 text-sm">
+
+                @can('users.view')
+                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">Users</x-nav-link>
+                @endcan
+
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
                 <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')">My Profile</x-nav-link>
 
