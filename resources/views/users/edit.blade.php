@@ -1,4 +1,4 @@
-<x-app-layout title="Edit user" :crumb="$user->name">
+<x-app-layout title="Edit user" :crumbs="['Users' => route('users.index'), 'Edit User' => null]">
     <x-card class="max-w-3xl p-6">
         <form method="POST" action="{{ route('users.update', $user) }}" class="space-y-6">
             @csrf

@@ -1,4 +1,5 @@
-<x-app-layout title="Roles">
+<x-app-layout title="Roles" :crumbs="['Roles' => null]">
+
     <div class="mb-6 flex justify-between gap-3">
         <p class="text-mute">Roles define what each user can see and do. Super admin always has everything.</p>
         <a href="{{ route('roles.create') }}"

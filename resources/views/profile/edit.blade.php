@@ -1,4 +1,5 @@
-<x-app-layout title="My profile">
+<x-app-layout title="My profile" :crumbs="['My profile' => null]">
+
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div class="space-y-6 xl:col-span-2">
             {{-- Profile information --}}

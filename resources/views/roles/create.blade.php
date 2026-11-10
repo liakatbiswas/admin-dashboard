@@ -1,4 +1,5 @@
-<x-app-layout title="New role" crumb="New role">
+<x-app-layout title="New Role" :crumbs="['Roles' => route('roles.index'), 'Add Role' => null]">
+
     <x-card class="p-6">
         <form method="POST" action="{{ route('roles.store') }}" class="space-y-6">
             @csrf

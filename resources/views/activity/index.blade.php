@@ -1,4 +1,5 @@
-<x-app-layout title="Activity log">
+<x-app-layout title="Activity log" :crumbs="['Activity log' => null]">
+
     <x-card class="mb-6 p-5">
         <form method="GET" action="{{ route('activity.index') }}"
             class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">

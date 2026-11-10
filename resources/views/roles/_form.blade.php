@@ -1,4 +1,3 @@
-{{-- Shared by create and edit. Expects $groups (permissions grouped by prefix), $selected (names). --}}
 @php
     $editing = isset($role) && $role->exists;
     $locked = $isProtected ?? false;
@@ -6,7 +5,9 @@
 
 <div class="max-w-md">
     <x-field label="Role name" name="name" :value="$editing ? $role->name : null" placeholder="content-editor" :readonly="$locked" required />
-    <p class="mt-1 text-xs text-mute">শুধু ছোট হাতের ইংরেজি অক্ষর, সংখ্যা, - ও _ চলবে।</p>
+    <p class="mt-1 text-xs text-mute">
+        Only lowercase English letters, numbers, hyphens (-), and underscores (_) are allowed.
+    </p>
 </div>
 
 <div class="mt-6 space-y-5">
@@ -29,7 +30,7 @@
             </div>
         </fieldset>
     @empty
-        <p class="text-mute">আপনার কাছে কোনো permission নেই।</p>
+        <p class="text-mute">You do not have any permissions.</p>
     @endforelse
 
     @error('permissions.*')

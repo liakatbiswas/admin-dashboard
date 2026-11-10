@@ -1,4 +1,5 @@
-@props(['title' => 'Dashboard'])
+@props(['title' => 'Dashboard', 'crumbs' => []])
+
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -43,7 +44,7 @@
             </p>
             <x-nav-link :href="route('dashboard')" icon="home" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
 
-            @canany(['users.manage', 'roles.manage', 'activity.view', 'settings.manage'])
+            @canany(['users.view', 'users.create', 'roles.manage', 'activity.view', 'settings.manage'])
                 <p class="px-3 pb-1.5 pt-[18px] text-xs font-medium tracking-[.08em] text-mute lg:[.sm-nav_&]:hidden">
                     Administration</p>
             @endcanany
@@ -55,7 +56,7 @@
                 <x-nav-link :href="route('settings.index')" icon="gear" :active="request()->routeIs('settings.*')">Settings</x-nav-link>
             @endcan
 
-            @can('users.manage')
+            @canany(['users.view', 'users.create'])
                 <div class="group {{ request()->routeIs('users.*') ? 'open' : '' }}">
                     <a class="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[14.5px] lg:[.sm-nav_&]:justify-center {{ request()->routeIs('users.*') ? 'bg-tint font-medium text-primary' : 'text-ink hover:bg-soft' }}"
                         data-tg>
@@ -65,13 +66,17 @@
                             class="ml-auto size-4 transition-transform group-[.open]:rotate-90 lg:[.sm-nav_&]:hidden" />
                     </a>
                     <div class="hidden pb-1 pl-[42px] pt-0.5 group-[.open]:block lg:[.sm-nav_&]:!hidden">
-                        <a href="{{ route('users.index') }}"
-                            class="block px-2 py-1.5 text-sm text-mute hover:text-primary">All users</a>
-                        <a href="{{ route('users.create') }}"
-                            class="block px-2 py-1.5 text-sm text-mute hover:text-primary">Invite user</a>
+                        @can('users.view')
+                            <a href="{{ route('users.index') }}"
+                                class="block px-2 py-1.5 text-sm text-mute hover:text-primary">All users</a>
+                        @endcan
+                        @can('users.create')
+                            <a href="{{ route('users.create') }}"
+                                class="block px-2 py-1.5 text-sm text-mute hover:text-primary">Invite user</a>
+                        @endcan
                     </div>
                 </div>
-            @endcan
+            @endcanany
 
             @can('roles.manage')
                 <div class="group {{ request()->routeIs('roles.*') ? 'open' : '' }}">
@@ -157,14 +162,20 @@
         </header>
 
         <main class="min-w-0 flex-1 p-4 sm:p-6">
+
             <div class="mb-6 flex flex-wrap items-center justify-between gap-2">
-                <h1 class="text-lg font-medium text-head">@yield('title')</h1>
+                <h1 class="text-lg font-medium text-head">{{ $title }}</h1>
                 <nav class="flex flex-wrap items-center gap-2 text-mute" aria-label="Breadcrumb">
                     <a href="{{ route('dashboard') }}" class="hover:text-primary">Dashboard</a>
-                    @hasSection('crumb')
+
+                    @foreach ($crumbs as $label => $url)
                         <x-icon name="chev" class="size-4" />
-                        <span>@yield('crumb')</span>
-                    @endif
+                        @if ($url && !$loop->last)
+                            <a href="{{ $url }}" class="hover:text-primary">{{ $label }}</a>
+                        @else
+                            <span class="text-head">{{ $label }}</span>
+                        @endif
+                    @endforeach
                 </nav>
             </div>
 
