@@ -25,7 +25,7 @@ class EnsureUserIsActive
             $request->session()->regenerateToken();
 
             return redirect()->route('login')
-                ->withErrors(['email' => 'আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে।']);
+                ->withErrors(['email' => 'Your account has been deactivated.']);
         }
 
         return $next($request);

@@ -25,8 +25,6 @@ class SettingController extends Controller
             ->causedBy(auth()->user())
             ->log($enable ? 'Registration enabled' : 'Registration disabled');
 
-        return back()->with('success', $enable
-            ? 'রেজিস্ট্রেশন চালু হয়েছে।'
-            : 'রেজিস্ট্রেশন বন্ধ হয়েছে।');
+        return back()->with('success', $enable ? 'Registration has been enabled.' : 'Registration has been disabled.');
     }
 }

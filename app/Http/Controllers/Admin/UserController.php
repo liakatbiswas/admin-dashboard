@@ -43,7 +43,9 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
-        // Super admin নিজে ইমেইল দিচ্ছে, আর set-password লিংকই মালিকানা প্রমাণ করে
+        /**  The super admin provides the email address, and the
+         * 'set-password' link itself serves as proof of ownership.
+         */
         $user = (new User)->forceFill([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -58,7 +60,7 @@ class UserController extends Controller
         $this->sendInvite($user);
 
         return redirect()->route('users.index')
-            ->with('success', "{$user->email}-এ invitation পাঠানো হয়েছে।");
+            ->with('success', "An invitation has been sent to {$user->email}.");
     }
 
     public function edit(User $user)
@@ -95,7 +97,7 @@ class UserController extends Controller
             $user->syncRoles($data['role']);
         }
 
-        return redirect()->route('users.index')->with('success', 'User আপডেট হয়েছে।');
+        return redirect()->route('users.index')->with('success', 'User has been updated.');
     }
 
     public function toggle(User $user): RedirectResponse
@@ -103,16 +105,16 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
 
         if ($user->is(auth()->user())) {
-            return back()->withErrors(['user' => 'নিজের অ্যাকাউন্ট নিষ্ক্রিয় করা যাবে না।']);
+            return back()->withErrors(['user' => 'You cannot deactivate your account.']);
         }
 
         $user->update(['is_active' => ! $user->is_active]);
 
         if (! $user->is_active) {
-            $user->tokens()->delete(); // Sanctum token বাতিল
+            $user->tokens()->delete(); // Sanctum token deleted
         }
 
-        return back()->with('success', $user->is_active ? 'User সক্রিয় করা হয়েছে।' : 'User নিষ্ক্রিয় করা হয়েছে।');
+        return back()->with('success', $user->is_active ? 'User has been activated.' : 'User has been deactivated.');
     }
 
     public function destroy(User $user): RedirectResponse
@@ -120,13 +122,13 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
 
         if ($user->is(auth()->user())) {
-            return back()->withErrors(['user' => 'নিজের অ্যাকাউন্ট মোছা যাবে না।']);
+            return back()->withErrors(['user' => 'You cannot delete your account.']);
         }
 
         $user->tokens()->delete();
         $user->delete();
 
-        return back()->with('success', 'User মুছে ফেলা হয়েছে (Restore করা যাবে)।');
+        return back()->with('success', 'User has been deleted (can be restored).');
     }
 
     public function restore(User $user): RedirectResponse
@@ -134,7 +136,7 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
         $user->restore();
 
-        return back()->with('success', 'User ফিরিয়ে আনা হয়েছে।');
+        return back()->with('success', 'The user has been brought back.');
     }
 
     public function invite(User $user): RedirectResponse
@@ -142,7 +144,7 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
         $this->sendInvite($user);
 
-        return back()->with('success', 'Invitation আবার পাঠানো হয়েছে।');
+        return back()->with('success', 'The invitation has been sent again.');
     }
 
     private function sendInvite(User $user): void

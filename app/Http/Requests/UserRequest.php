@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,8 +18,6 @@ class UserRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -41,7 +38,7 @@ class UserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.unique' => 'এই ইমেইল আগে ব্যবহৃত হয়েছে (মুছে ফেলা user-ও হতে পারে, Deleted ফিল্টারে দেখুন)।',
+            'email.unique' => 'This email has been used before (can also be a deleted user,  see the Deleted filter).',
         ];
     }
 }

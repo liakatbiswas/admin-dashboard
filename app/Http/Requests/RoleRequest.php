@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,14 +12,14 @@ class RoleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // route-এর can:roles.manage দেখে
+        return true;
     }
 
     protected function prepareForValidation(): void
     {
         $role = $this->route('role');
 
-        // protected role-এর নাম বদলানো যাবে না
+        // The name of a protected role cannot be changed.
         if ($role && in_array($role->name, config('permissions.protected_roles'), true)) {
             $this->merge(['name' => $role->name]);
         }
@@ -28,8 +27,6 @@ class RoleRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -47,9 +44,9 @@ class RoleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.regex' => 'নামে শুধু ছোট হাতের ইংরেজি অক্ষর, সংখ্যা, - ও _ চলবে (যেমন: content-editor)।',
-            'name.unique' => 'এই নামে role আগেই আছে।',
-            'permissions.*.in' => 'আপনার কাছে নেই এমন permission দেওয়া যাবে না।',
+            'name.regex' => 'The name may only contain lowercase English letters, numbers, hyphens (-), and underscores (_) (e.g., content-editor).',
+            'name.unique' => 'A role with this name already exists.',
+            'permissions.*.in' => 'You cannot grant permissions that you do not possess yourself.',
         ];
     }
 }
