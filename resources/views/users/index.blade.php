@@ -32,6 +32,7 @@
                         <th>Role</th>
                         <th>Status</th>
                         <th>Joined</th>
+                        <th>Change Status</th>
                         <th class="text-right">Actions</th>
                     </tr>
                 </thead>
@@ -66,12 +67,27 @@
                                 @endif
                             </td>
                             <td class="text-mute">{{ $user->created_at->format('d M Y') }}</td>
+
+                            <td>
+                                @if (Route::has('users.toggle') && auth()->id() !== $user->id)
+                                    <form method="POST" action="{{ route('users.toggle', $user) }}"
+                                        @if ($user->is_active) data-confirm="{{ $user->name }} কে নিষ্ক্রিয় করবেন?" @endif>
+                                        @csrf
+                                        @method('PATCH')
+                                        <x-button :variant="$user->is_active ? 's' : 'ps'" size="sm">
+                                            {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                                        </x-button>
+                                    </form>
+                                @endif
+                            </td>
+
                             <td>
                                 <div class="flex items-center justify-end gap-2">
                                     @if ($user->trashed())
                                         @if (Route::has('users.restore'))
                                             <form method="POST" action="{{ route('users.restore', $user) }}">
                                                 @csrf
+                                                @method('PATCH')
                                                 <x-button variant="ps" size="sm">Restore</x-button>
                                             </form>
                                         @endif
