@@ -29,10 +29,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('users/{user}/edit', 'edit')->middleware('can:users.edit')->name('users.edit');
         Route::put('users/{user}', 'update')->middleware('can:users.edit')->name('users.update');
         Route::patch('users/{user}/toggle', 'toggle')->middleware('can:users.edit')->name('users.toggle');
-        Route::post('users/{user}/invite', 'invite')->middleware('can:users.create')->name('users.invite');
+        // Route::post('users/{user}/invite', 'invite')->middleware('can:users.create')->name('users.invite');
         Route::delete('users/{user}', 'destroy')->middleware('can:users.delete')->name('users.destroy');
         Route::patch('users/{user}/restore', 'restore')->middleware('can:users.delete')
             ->withTrashed()->name('users.restore');
+
+        Route::post('users/{user}/invite', 'invite')->middleware(['can:users.create', 'throttle:user-invitations'])
+            ->name('users.invite');
+
     });
 
     Route::middleware('can:roles.manage')->prefix('admin')->group(function () {

@@ -57,6 +57,12 @@ class UserController extends Controller
         $user->save();
         $user->syncRoles($data['role']);
 
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->withProperties(['role' => $data['role']])
+            ->log("User invited: {$user->email}");
+
         $this->sendInvite($user);
 
         return redirect()->route('users.index')
@@ -78,6 +84,9 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
         $data = $request->validated();
 
+        // Roles before the change, for the activity log
+        $oldRoles = $user->getRoleNames()->sort()->values()->all();
+
         $user->fill([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -95,6 +104,16 @@ class UserController extends Controller
 
         if ($user->isNot(auth()->user()) && isset($data['role'])) {
             $user->syncRoles($data['role']);
+
+            $newRoles = [$data['role']];
+
+            if ($oldRoles !== $newRoles) {
+                activity()
+                    ->causedBy(auth()->user())
+                    ->performedOn($user)
+                    ->withProperties(['old' => $oldRoles, 'new' => $newRoles])
+                    ->log('Role changed');
+            }
         }
 
         return redirect()->route('users.index')->with('success', 'User has been updated.');
@@ -108,6 +127,7 @@ class UserController extends Controller
             return back()->withErrors(['user' => 'You cannot deactivate your account.']);
         }
 
+        // is_active is in the activity log options, so this update is logged automatically
         $user->update(['is_active' => ! $user->is_active]);
 
         if (! $user->is_active) {
@@ -126,7 +146,7 @@ class UserController extends Controller
         }
 
         $user->tokens()->delete();
-        $user->delete();
+        $user->delete(); // the "deleted" event is logged automatically
 
         return back()->with('success', 'User has been deleted (can be restored).');
     }
@@ -136,6 +156,12 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
         $user->restore();
 
+        // "restored" is not logged by default, so log it manually
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->log("User restored: {$user->email}");
+
         return back()->with('success', 'The user has been brought back.');
     }
 
@@ -143,6 +169,11 @@ class UserController extends Controller
     {
         Gate::authorize('manage', $user);
         $this->sendInvite($user);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->log("Invitation resent: {$user->email}");
 
         return back()->with('success', 'The invitation has been sent again.');
     }
