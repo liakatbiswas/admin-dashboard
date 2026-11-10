@@ -1,37 +1,38 @@
+{{-- Shared by create and edit. Expects $groups (permissions grouped by prefix), $selected (names). --}}
 @php
-    $labels = config('permissions.permissions');
-    $selected = old('permissions', $selected);
-    $locked = isset($isProtected) && $isProtected;
+    $editing = isset($role) && $role->exists;
+    $locked = $isProtected ?? false;
 @endphp
 
-<div class="mb-5">
-    <label for="name" class="mb-1.5 block text-sm font-medium text-head">Role Name</label>
-    <input id="name" name="name" value="{{ old('name', $role->name ?? '') }}"
-        class="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-head placeholder:text-mute focus:outline focus:outline-2 focus:outline-offset-1 focus:outline-primary/45 disabled:bg-soft read-only:bg-soft [&.bad]:border-red-500 [&[type=file]]:px-2 [&[type=file]]:py-1.5"
-        placeholder="content-editor" @readonly($locked) required>
-    @if ($locked)
-        <p class="text-mute text-xs mt-1">এই role-এর নাম বদলানো যাবে না, শুধু permission বদলানো যাবে।</p>
-    @endif
+<div class="max-w-md">
+    <x-field label="Role name" name="name" :value="$editing ? $role->name : null" placeholder="content-editor" :readonly="$locked" required />
+    <p class="mt-1 text-xs text-mute">শুধু ছোট হাতের ইংরেজি অক্ষর, সংখ্যা, - ও _ চলবে।</p>
 </div>
 
-<h3 class="text-head font-medium mb-3">Permissions</h3>
+<div class="mt-6 space-y-5">
+    <p class="text-[15px] font-medium text-head">Permissions</p>
 
-@foreach ($groups as $group => $permissions)
-    <fieldset class="rounded-md border border-line px-4 py-3 mb-3">
-        <legend class="px-2 text-sm font-medium text-head">{{ config("permissions.groups.$group", $group) }}</legend>
+    @forelse ($groups as $group => $permissions)
+        <fieldset class="rounded-md border border-line p-4">
+            <legend class="px-1 text-sm font-medium text-head">{{ ucfirst($group) }}</legend>
+            <label class="mb-3 mt-1 flex items-center gap-2 text-mute">
+                <input type="checkbox" data-check-all class="size-4 accent-primary"> Select all in {{ $group }}
+            </label>
+            <div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-3">
+                @foreach ($permissions as $permission)
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="permissions[]" value="{{ $permission->name }}"
+                            class="perm size-4 accent-primary" @checked(in_array($permission->name, $selected ?? [], true))>
+                        {{ ucwords(str_replace(['.', '_'], ' ', $permission->name)) }}
+                    </label>
+                @endforeach
+            </div>
+        </fieldset>
+    @empty
+        <p class="text-mute">আপনার কাছে কোনো permission নেই।</p>
+    @endforelse
 
-        <label class="flex items-center gap-2 text-xs text-mute mb-3">
-            <input type="checkbox" data-check-all> এই গ্রুপের সব
-        </label>
-
-        <div class="grid gap-3 sm:grid-cols-2">
-            @foreach ($permissions as $permission)
-                <label class="flex items-center gap-2 text-sm">
-                    <input type="checkbox" class="perm" name="permissions[]" value="{{ $permission->name }}"
-                        @checked(in_array($permission->name, $selected))>
-                    {{ $labels[$permission->name] ?? $permission->name }}
-                </label>
-            @endforeach
-        </div>
-    </fieldset>
-@endforeach
+    @error('permissions.*')
+        <p class="text-sm text-bad">{{ $message }}</p>
+    @enderror
+</div>

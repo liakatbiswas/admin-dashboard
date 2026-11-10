@@ -1,9 +1,8 @@
-@props(['user'])
-@if ($user->avatar)
-    <img src="{{ asset('storage/'.$user->avatar) }}" alt="{{ $user->name }}"
-        {{ $attributes->merge(['class' => 'size-9 rounded-full object-cover']) }}>
-@else
-    <div {{ $attributes->merge(['class' => 'size-9 bg-primary rounded-full flex items-center justify-center font-semibold text-white']) }}>
-        {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
-    </div>
-@endif
+@props(['user', 'size' => 'size-9'])
+@php
+    $src = $user->avatar
+        ? \Illuminate\Support\Facades\Storage::url($user->avatar)
+        : 'https://i.pravatar.cc/80?img=' . (($user->id % 70) + 1);
+@endphp
+<img src="{{ $src }}" alt="{{ $user->name }}" loading="lazy"
+    {{ $attributes->class([$size, 'shrink-0 rounded-full object-cover']) }}>

@@ -1,21 +1,28 @@
-<x-guest-layout>
-    <h4 class="text-xl text-head font-medium text-center">Welcome back</h4>
-    <p class="text-mute text-center mt-1 mb-6">Enter your email address and password to access the admin panel.</p>
+<x-guest-layout title="Sign in">
+    <h4 class="text-center text-xl font-medium text-head">Welcome back</h4>
+    <p class="mb-6 mt-1 text-center text-mute">Enter your email address and password to access the admin panel.</p>
 
-    <form method="POST" action="{{ route('login') }}">
+    @if (session('status'))
+        <x-alert>{{ session('status') }}</x-alert>
+    @endif
+
+    <form method="POST" action="{{ route('login') }}" class="space-y-4">
         @csrf
-        <x-field label="Email address" name="email" type="email" required autofocus />
-        <x-field label="Password" name="password" type="password" required />
-        <label class="flex items-center gap-2 text-sm mb-5">
-            <input type="checkbox" name="remember"> Remember me
-        </label>
-        <button
-            class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8] w-full">Log
-            in</button>
-    </form>
+        <x-field label="Email address" name="email" type="email" autocomplete="username" placeholder="you@example.com"
+            required autofocus />
+        <x-field label="Password" name="password" type="password" autocomplete="current-password"
+            placeholder="Enter your password" required />
 
-    <div class="flex justify-between text-sm mt-6">
-        <a href="{{ route('password.request') }}" class="text-primary font-medium">Forgot password?</a>
-        <a href="{{ route('register') }}" class="text-primary font-medium">Register</a>
-    </div>
+        <div class="flex items-center justify-between gap-2">
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="remember" class="size-4 accent-primary" @checked(old('remember'))>
+                Remember me
+            </label>
+            @if (Route::has('password.request'))
+                <a href="{{ route('password.request') }}" class="text-sm text-primary">Forgot password?</a>
+            @endif
+        </div>
+
+        <x-button class="w-full">Log in</x-button>
+    </form>
 </x-guest-layout>

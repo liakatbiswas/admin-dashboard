@@ -1,11 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import 'tailwindcss';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../views/**/*.blade.php';
 @source '../js/**/*.js';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
-    --font-sans: 'Inter', system-ui, sans-serif;
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --color-primary: #3073f1;
     --color-page: var(--bg);
     --color-card: var(--cd);
@@ -22,56 +24,26 @@
     --shadow-card: var(--sh);
 }
 
-@layer base {
-    :root {
-        --bg: #f3f5f9;
-        --cd: #fff;
-        --bd: #e6e9ef;
-        --tx: #505b6e;
-        --hd: #1e2a3b;
-        --mt: #7b8699;
-        --hv: #f1f4f9;
-        --ac: rgba(48, 115, 241, .1);
-        --sh: 0 1px 4px rgba(15, 23, 42, .07);
-    }
-
-    html.dark {
-        --bg: #0e1522;
-        --cd: #172131;
-        --bd: #263246;
-        --tx: #c3cddb;
-        --hd: #f2f5f9;
-        --mt: #8a97ab;
-        --hv: #202c40;
-        --ac: rgba(48, 115, 241, .2);
-        --sh: 0 0 0 1px var(--bd);
-    }
-
-    html {
-        scroll-behavior: smooth;
-    }
-
-    [id] {
-        scroll-margin-top: 90px;
-    }
-
-    input {
-        accent-color: #3073f1;
-    }
-
-    input[type="checkbox"],
-    input[type="radio"] {
-        width: 1rem;
-        height: 1rem;
-    }
+:root {
+    --bg: #f3f5f9;
+    --cd: #fff;
+    --bd: #e6e9ef;
+    --tx: #505b6e;
+    --hd: #1e2a3b;
+    --mt: #7b8699;
+    --hv: #f1f4f9;
+    --ac: rgba(48, 115, 241, .1);
+    --sh: 0 1px 4px rgba(15, 23, 42, .07);
 }
 
-/* Utility transition-ও বন্ধ করতে layer-এর বাইরে রাখা হয়েছে। */
-@media (prefers-reduced-motion: reduce) {
-
-    html,
-    html * {
-        transition: none !important;
-        scroll-behavior: auto !important;
-    }
+.dark {
+    --bg: #0e1522;
+    --cd: #172131;
+    --bd: #263246;
+    --tx: #c3cddb;
+    --hd: #f2f5f9;
+    --mt: #8a97ab;
+    --hv: #202c40;
+    --ac: rgba(48, 115, 241, .2);
+    --sh: 0 0 0 1px var(--bd);
 }

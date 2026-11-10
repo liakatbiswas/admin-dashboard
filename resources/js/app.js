@@ -1,51 +1,64 @@
-import '../css/app.css';
+// Admin layout behaviour: theme, sidebar, dropdowns, settings panel, small form helpers.
+// Markup and styling come from Blade + Tailwind classes; this file only toggles state.
+const D = document;
+const H = D.documentElement;
 
-// Template layout behaviour (theme, sidebar, dropdowns, settings panel).
-// Markup is server-rendered by Blade, so this file only wires up interactions.
-const H = document.documentElement;
+const BASE = 'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium';
+const ON = 'bg-tint text-primary';
+const OFF = 'bg-soft text-head hover:bg-line';
 
-const syncSettings = () => {
+const sync = () => {
     const dark = H.classList.contains('dark');
     const small = H.classList.contains('sm-nav');
-    document.querySelectorAll('[data-th]').forEach((el) => {
-        el.className = 'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 ' + ((el.dataset.th === 'dark') === dark ? 'bg-tint text-primary' : 'bg-soft text-head hover:bg-line');
+    D.querySelectorAll('[data-th]').forEach((el) => {
+        el.className = BASE + ' ' + ((el.dataset.th === 'dark') === dark ? ON : OFF);
     });
-    document.querySelectorAll('[data-sn]').forEach((el) => {
-        el.className = 'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 ' + ((el.dataset.sn === '1') === small ? 'bg-tint text-primary' : 'bg-soft text-head hover:bg-line');
+    D.querySelectorAll('[data-sn]').forEach((el) => {
+        el.className = BASE + ' ' + ((el.dataset.sn === '1') === small ? ON : OFF);
     });
 };
 
 const setTheme = (dark) => {
     H.classList.toggle('dark', dark);
-    try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) { }
-    syncSettings();
+    try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+    sync();
 };
 
 const setSmallNav = (on) => {
     H.classList.toggle('sm-nav', on);
-    try { localStorage.setItem('sn', on ? '1' : '0'); } catch (e) { }
-    syncSettings();
+    try { localStorage.setItem('sn', on ? '1' : '0'); } catch (e) {}
+    sync();
 };
 
 const closeMenus = (except = null) => {
-    document.querySelectorAll('.dd-wrap.open').forEach((el) => {
+    D.querySelectorAll('[data-dw].open').forEach((el) => {
         if (el !== except) el.classList.remove('open');
     });
 };
 
-document.addEventListener('click', (e) => {
+D.addEventListener('click', (e) => {
     const t = e.target;
 
-    const dd = t.closest('[data-dd]');
-    if (dd) {
-        const wrap = dd.closest('.dd-wrap');
+    // Sidebar sub-menu toggle (collapses to icons on desktop first)
+    const tg = t.closest('[data-tg]');
+    if (tg) {
+        if (H.classList.contains('sm-nav') && innerWidth >= 1024) setSmallNav(false);
+        tg.parentElement.classList.toggle('open');
+        return;
+    }
+
+    // Dropdown trigger
+    const trigger = t.closest('[data-dd]');
+    if (trigger) {
+        const wrap = trigger.closest('[data-dw]');
         closeMenus(wrap);
         wrap.classList.toggle('open');
         return;
     }
 
-    if (t.closest('.dd')) {
-        if (t.closest('.dd a, .dd button')) closeMenus();
+    // Inside a dropdown: links and buttons close it, anything else keeps it open
+    if (t.closest('[data-dp]')) {
+        if (t.closest('[data-dp] a, [data-dp] button')) closeMenus();
         return;
     }
 
@@ -66,9 +79,9 @@ document.addEventListener('click', (e) => {
     }
 
     if (t.closest('#fs')) {
-        return document.fullscreenElement
-            ? document.exitFullscreen()
-            : document.documentElement.requestFullscreen?.();
+        return D.fullscreenElement
+            ? D.exitFullscreen()
+            : H.requestFullscreen?.();
     }
 
     if (t.closest('#ov')) return H.classList.remove('sb-open', 'st-open');
@@ -78,21 +91,28 @@ document.addEventListener('click', (e) => {
 });
 
 // Destructive actions: <form data-confirm="...">
-document.addEventListener('submit', (e) => {
+D.addEventListener('submit', (e) => {
     const message = e.target.dataset.confirm;
     if (message && !window.confirm(message)) e.preventDefault();
 });
 
 // Role form: "এই গ্রুপের সব" checkbox
-document.addEventListener('change', (e) => {
+D.addEventListener('change', (e) => {
     if (!e.target.matches('[data-check-all]')) return;
     e.target.closest('fieldset')?.querySelectorAll('.perm').forEach((c) => {
         c.checked = e.target.checked;
     });
 });
 
-addEventListener('scroll', () => {
-    document.getElementById('up')?.classList.toggle('show', window.scrollY > 300);
-}, { passive: true });
+// Back-to-top button fades in after scrolling
+const up = D.getElementById('up');
+const onScroll = () => {
+    if (!up) return;
+    const show = window.scrollY > 300;
+    up.classList.toggle('opacity-0', !show);
+    up.classList.toggle('pointer-events-none', !show);
+};
+window.addEventListener('scroll', onScroll, { passive: true });
 
-syncSettings();
+sync();
+onScroll();

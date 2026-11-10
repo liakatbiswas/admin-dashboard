@@ -1,54 +1,47 @@
-<!DOCTYPE html>
-<html lang="en"
-    class="[--bg:#f3f5f9] [--cd:#fff] [--bd:#e6e9ef] [--tx:#505b6e] [--hd:#1e2a3b] [--mt:#7b8699] [--hv:#f1f4f9] [--ac:rgba(48,115,241,.1)] [--sh:0_1px_4px_rgba(15,23,42,.07)] [&.dark]:[--bg:#0e1522] [&.dark]:[--cd:#172131] [&.dark]:[--bd:#263246] [&.dark]:[--tx:#c3cddb] [&.dark]:[--hd:#f2f5f9] [&.dark]:[--mt:#8a97ab] [&.dark]:[--hv:#202c40] [&.dark]:[--ac:rgba(48,115,241,.2)] [&.dark]:[--sh:0_0_0_1px_var(--bd)] motion-reduce:transition-none! motion-reduce:[&_*]:transition-none! scroll-smooth motion-reduce:scroll-auto motion-reduce:[&_*]:scroll-auto [&_[id]]:scroll-mt-[90px] [&_input[type=checkbox]]:size-4 [&_input[type=radio]]:size-4 [&_input]:accent-primary">
+@props(['title' => 'Dashboard'])
+<!doctype html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{{ asset('assets/images/logo/favicon.ico') }}" type="image/x-icon">
+
+    <title>NGHS | {{ $title }}</title>
+
     <script>
         (function() {
             var h = document.documentElement;
             try {
                 var t = localStorage.getItem('theme');
-                if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) h.classList.add('dark');
+                if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) h.classList.add('dark')
             } catch (e) {}
         })();
     </script>
-    @vite(['resources/js/app.js'])
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body class="bg-page font-sans text-sm leading-normal text-ink antialiased">
-    <button
-        class="fixed! top-4 right-4 bg-card relative grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-mute hover:bg-soft hover:text-head"
-        id="th" type="button" aria-label="Light/Dark mode">
+    <button id="th" type="button"
+        class="fixed right-4 top-4 grid size-10 cursor-pointer place-items-center rounded-full bg-card text-mute hover:text-head"
+        aria-label="Toggle theme">
         <x-icon name="moon" class="dark:hidden" />
         <x-icon name="sun" class="hidden dark:block" />
     </button>
 
-    <div
-        class="grid min-h-screen place-items-center p-4 sm:p-6 [&>div]:w-full [&>div]:max-w-[440px] [&>div]:p-6 sm:[&>div]:p-8">
-        <div class="rounded-lg bg-card shadow-card">
-            <a href="{{ url('/') }}" class="flex items-center justify-center gap-2 mb-6">
+    <main class="grid min-h-screen place-items-center p-4 sm:p-6">
+        <div class="w-full max-w-[440px] rounded-lg bg-card p-6 shadow-card sm:p-8">
+            <div class="mb-6 flex justify-center">
                 <x-logo />
-                <span class="text-head font-semibold text-lg">{{ config('app.name') }}</span>
-            </a>
-
-            @if (session('status'))
-                <div class="mb-4 rounded-md bg-ok/15 px-4 py-3 text-sm text-ok">{{ session('status') }}</div>
-            @endif
-            @if ($errors->any())
-                <div class="mb-4 rounded-md bg-bad/15 px-4 py-3 text-sm text-bad [&_p+p]:mt-1">
-                    @foreach ($errors->all() as $error)
-                        <p>{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
+            </div>
 
             {{ $slot }}
+
         </div>
-    </div>
+    </main>
 </body>
 
 </html>

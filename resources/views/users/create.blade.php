@@ -1,16 +1,13 @@
-<x-app-layout title="নতুন User">
-    <section class="rounded-lg bg-card shadow-card p-6 max-w-2xl">
-        <form method="POST" action="{{ route('users.store') }}">
+<x-app-layout title="Invite user" crumb="Invite user">
+    <x-card class="max-w-3xl p-6">
+        <form method="POST" action="{{ route('users.store') }}" class="space-y-6">
             @csrf
-            @include('users._form', ['user' => null])
-            <p class="text-mute text-sm mb-4">ইমেইলে পাসওয়ার্ড সেট করার লিংক চলে যাবে।</p>
-            <div class="flex flex-wrap gap-3">
-                <button
-                    class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8]">Create
-                    & Send Invite</button>
+            @include('users._form', ['roles' => $roles])
+            <div class="flex justify-end gap-2">
                 <a href="{{ route('users.index') }}"
-                    class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-soft text-head hover:bg-line">Cancel</a>
+                    class="inline-flex items-center rounded-md bg-soft px-4 py-2 text-sm font-medium text-head hover:bg-line">Cancel</a>
+                <x-button>Send invitation</x-button>
             </div>
         </form>
-    </section>
+    </x-card>
 </x-app-layout>

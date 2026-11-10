@@ -1,162 +1,100 @@
-<x-app-layout title="My Profile">
-    <div class="grid gap-6 max-w-3xl">
+<x-app-layout title="My profile">
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div class="space-y-6 xl:col-span-2">
+            {{-- Profile information --}}
+            <x-card class="p-6">
+                <h2 class="text-[15px] font-medium text-head">Profile information</h2>
+                <p class="mb-5 mt-1 text-mute">Update your name, contact details and photo.</p>
 
-        {{-- Profile information --}}
-        <section class="rounded-lg bg-card shadow-card p-6">
-            <h2 class="text-[15px] font-medium text-head mb-4">Profile Information</h2>
-
-            @php $profileErrors = $errors->getBag('updateProfileInformation'); @endphp
-            @if ($profileErrors->any())
-                <div class="mb-4 rounded-md bg-bad/15 px-4 py-3 text-sm text-bad [&_p+p]:mt-1">
-                    @foreach ($profileErrors->all() as $error)
-                        <p>{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('user-profile-information.update') }}" enctype="multipart/form-data">
-                @csrf
-                @method('PUT')
-
-                <div class="flex items-center gap-4 mb-5">
-                    <x-avatar :user="$user" class="w-16 h-16 text-xl" />
-                    <input type="file" name="avatar" accept="image/*" class="text-sm text-mute">
-                </div>
-
-                <x-field label="Name" name="name" :value="$user->name" required bag="updateProfileInformation" />
-                <x-field label="Email" name="email" type="email" :value="$user->email" required
-                    bag="updateProfileInformation" />
-                <x-field label="Phone" name="phone" :value="$user->phone" bag="updateProfileInformation" />
-
-                <div class="mb-4">
-                    <label for="bio" class="mb-1.5 block text-sm font-medium text-head">Bio</label>
-                    <textarea id="bio" name="bio" rows="3"
-                        class="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-head placeholder:text-mute focus:outline focus:outline-2 focus:outline-offset-1 focus:outline-primary/45 disabled:bg-soft read-only:bg-soft [&.bad]:border-red-500 [&[type=file]]:px-2 [&[type=file]]:py-1.5">{{ old('bio', $user->bio) }}</textarea>
-                </div>
-                <div class="mb-5">
-                    <label for="address" class="mb-1.5 block text-sm font-medium text-head">Address</label>
-                    <textarea id="address" name="address" rows="2"
-                        class="w-full rounded-md border border-line bg-card px-3 py-2 text-sm text-head placeholder:text-mute focus:outline focus:outline-2 focus:outline-offset-1 focus:outline-primary/45 disabled:bg-soft read-only:bg-soft [&.bad]:border-red-500 [&[type=file]]:px-2 [&[type=file]]:py-1.5">{{ old('address', $user->address) }}</textarea>
-                </div>
-
-                <button
-                    class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8]">Save</button>
-            </form>
-        </section>
-
-        {{-- Password --}}
-        <section class="rounded-lg bg-card shadow-card p-6">
-            <h2 class="text-[15px] font-medium text-head mb-4">Change Password</h2>
-
-            @php $passwordErrors = $errors->getBag('updatePassword'); @endphp
-            @if ($passwordErrors->any())
-                <div class="mb-4 rounded-md bg-bad/15 px-4 py-3 text-sm text-bad [&_p+p]:mt-1">
-                    @foreach ($passwordErrors->all() as $error)
-                        <p>{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('user-password.update') }}">
-                @csrf
-                @method('PUT')
-                <x-field label="Current Password" name="current_password" type="password" required
-                    bag="updatePassword" />
-                <x-field label="New Password" name="password" type="password" required bag="updatePassword" />
-                <x-field label="Confirm Password" name="password_confirmation" type="password" required
-                    bag="updatePassword" />
-                <button
-                    class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8]">Update
-                    Password</button>
-            </form>
-        </section>
-
-        {{-- Two-factor authentication --}}
-        <section class="rounded-lg bg-card shadow-card p-6">
-            @php
-                $twoFaErrors = $errors->getBag('confirmTwoFactorAuthentication');
-                $twoFaStarted = !is_null($user->two_factor_secret);
-                $twoFaConfirmed = !is_null($user->two_factor_confirmed_at);
-                $showCodes = in_array(session('status'), [
-                    'two-factor-authentication-confirmed',
-                    'recovery-codes-generated',
-                ]);
-            @endphp
-
-            <h2 class="text-[15px] font-medium text-head mb-1">Two-Factor Authentication</h2>
-
-            @if (!$twoFaStarted)
-                <p class="text-mute mb-4">
-                    Authenticator অ্যাপ (Google Authenticator, Authy ইত্যাদি) দিয়ে লগইন আরও নিরাপদ করুন।
-                </p>
-                <form method="POST" action="{{ route('two-factor.enable') }}">
+                <form method="POST" action="{{ route('user-profile-information.update') }}" enctype="multipart/form-data"
+                    class="space-y-4">
                     @csrf
-                    <button
-                        class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8]">Enable</button>
-                </form>
-            @elseif (!$twoFaConfirmed)
-                <p class="text-mute mb-3">
-                    অ্যাপ দিয়ে এই QR স্ক্যান করুন, তারপর অ্যাপে দেখানো ৬ ডিজিটের কোড দিয়ে নিশ্চিত করুন।
-                </p>
+                    @method('PUT')
 
-                <div class="mb-3 inline-block bg-white p-2 rounded">{!! $user->twoFactorQrCodeSvg() !!}</div>
-                <p class="text-mute text-xs mb-4 break-all">
-                    স্ক্যান না হলে Setup key: <span class="font-mono">{{ decrypt($user->two_factor_secret) }}</span>
-                </p>
-
-                @if ($twoFaErrors->any())
-                    <div class="mb-4 rounded-md bg-bad/15 px-4 py-3 text-sm text-bad [&_p+p]:mt-1">
-                        @foreach ($twoFaErrors->all() as $error)
-                            <p>{{ $error }}</p>
-                        @endforeach
-                    </div>
-                @endif
-
-                <form method="POST" action="{{ route('two-factor.confirm') }}" class="mb-3">
-                    @csrf
-                    <x-field label="Authentication Code" name="code" inputmode="numeric" autocomplete="one-time-code"
-                        required bag="confirmTwoFactorAuthentication" />
-                    <button
-                        class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8]">Confirm</button>
-                </form>
-
-                <form method="POST" action="{{ route('two-factor.disable') }}">
-                    @csrf
-                    @method('DELETE')
-                    <button
-                        class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-soft text-head hover:bg-line">Cancel</button>
-                </form>
-            @else
-                <p class="text-ok mb-4">Two-factor চালু আছে।</p>
-
-                @if ($showCodes)
-                    <div class="mb-4 rounded-md bg-ok/15 px-4 py-3 text-sm text-ok">
-                        <p class="font-medium mb-2">Recovery codes: নিরাপদ জায়গায় সেভ করুন, এগুলো আর দেখানো হবে না।
-                        </p>
-                        <div class="grid grid-cols-2 gap-1 font-mono text-sm">
-                            @foreach ($user->recoveryCodes() as $code)
-                                <div>{{ $code }}</div>
-                            @endforeach
+                    <div class="flex items-center gap-4">
+                        <x-avatar :user="$user" size="size-16" />
+                        <div>
+                            <label for="avatar" class="mb-1.5 block text-sm font-medium text-head">Photo</label>
+                            <input id="avatar" type="file" name="avatar" accept="image/*"
+                                class="text-sm text-mute file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-soft file:px-3 file:py-1.5 file:text-head">
+                            @error('avatar', 'updateProfileInformation')
+                                <p class="mt-1 text-sm text-bad">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
-                @endif
 
-                <div class="flex flex-wrap gap-3">
-                    <form method="POST" action="{{ route('two-factor.recovery-codes') }}">
-                        @csrf
-                        <button
-                            class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-soft text-head hover:bg-line">নতুন
-                            Recovery Codes</button>
-                    </form>
-                    <form method="POST" action="{{ route('two-factor.disable') }}"
-                        data-confirm="Two-factor বন্ধ করবেন?">
-                        @csrf
-                        @method('DELETE')
-                        <button
-                            class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-red-500 text-white hover:bg-red-600">Disable</button>
-                    </form>
-                </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <x-field label="Full name" name="name" :value="$user->name" bag="updateProfileInformation"
+                            required />
+                        <x-field label="Email address" name="email" type="email" :value="$user->email"
+                            bag="updateProfileInformation" required />
+                        <x-field label="Phone" name="phone" :value="$user->phone" bag="updateProfileInformation" />
+                        <x-field label="Address" name="address" :value="$user->address" bag="updateProfileInformation" />
+                    </div>
+                    <x-field label="Bio" name="bio" type="textarea" :value="$user->bio"
+                        bag="updateProfileInformation" rows="4" />
+
+                    <div class="flex justify-end">
+                        <x-button>Save changes</x-button>
+                    </div>
+                </form>
+            </x-card>
+
+            {{-- Password --}}
+            <x-card class="p-6">
+                <h2 class="text-[15px] font-medium text-head">Update password</h2>
+                <p class="mb-5 mt-1 text-mute">Use a long password you do not use anywhere else.</p>
+
+                <form method="POST" action="{{ route('user-password.update') }}" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+                    <x-field label="Current password" name="current_password" type="password"
+                        autocomplete="current-password" bag="updatePassword" required />
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <x-field label="New password" name="password" type="password" autocomplete="new-password"
+                            bag="updatePassword" required />
+                        <x-field label="Confirm password" name="password_confirmation" type="password"
+                            autocomplete="new-password" bag="updatePassword" required />
+                    </div>
+                    <div class="flex justify-end">
+                        <x-button>Update password</x-button>
+                    </div>
+                </form>
+            </x-card>
+        </div>
+
+        {{-- Two-factor authentication --}}
+        <x-card class="h-fit p-6">
+            <h2 class="text-[15px] font-medium text-head">Two-factor authentication</h2>
+
+            @if (!$user->two_factor_secret)
+                <p class="mb-5 mt-1 text-mute">Add a second step to your login with an authenticator app.</p>
+                <form method="POST" action="{{ route('two-factor.enable') }}">
+                    @csrf
+                    <x-button>Enable 2FA</x-button>
+                </form>
+            @elseif (!$user->two_factor_confirmed_at)
+                <p class="mb-4 mt-1 text-mute">Scan this QR code with your app, then enter the code to confirm.</p>
+                <div class="mb-4 w-48 rounded-md bg-white p-2">{!! $user->twoFactorQrCodeSvg() !!}</div>
+                <form method="POST" action="{{ route('two-factor.confirm') }}" class="space-y-3">
+                    @csrf
+                    <x-field label="Authentication code" name="code" inputmode="numeric" autocomplete="one-time-code"
+                        bag="confirmTwoFactorAuthentication" required />
+                    <x-button>Confirm</x-button>
+                </form>
+            @else
+                <p class="mb-4 mt-1 text-mute">2FA is on. Store these recovery codes somewhere safe.</p>
+                <ul class="mb-5 grid grid-cols-2 gap-2 rounded-md bg-soft p-4 font-mono text-sm text-head">
+                    @foreach ($user->recoveryCodes() as $code)
+                        <li>{{ $code }}</li>
+                    @endforeach
+                </ul>
+                <form method="POST" action="{{ route('two-factor.disable') }}" data-confirm="2FA বন্ধ করবেন?">
+                    @csrf
+                    @method('DELETE')
+                    <x-button variant="bad">Disable 2FA</x-button>
+                </form>
             @endif
-        </section>
+        </x-card>
     </div>
 </x-app-layout>

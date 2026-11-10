@@ -1,18 +1,28 @@
-<x-guest-layout>
-    <h4 class="text-xl text-head font-medium text-center">Create an account</h4>
-    <p class="text-mute text-center mt-1 mb-6">Fill in the form below to register.</p>
+<x-guest-layout title="Create account">
+    <h4 class="text-center text-xl font-medium text-head">Create an account</h4>
+    <p class="mb-6 mt-1 text-center text-mute">New accounts start with the student role.</p>
 
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
-        <x-field label="Name" name="name" required autofocus />
-        <x-field label="Email address" name="email" type="email" required />
-        <x-field label="Password" name="password" type="password" required />
-        <x-field label="Confirm password" name="password_confirmation" type="password" required />
-        <button
-            class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8] w-full mt-2">Register</button>
-    </form>
+    @if (!\App\Models\Setting::registrationEnabled())
+        <div class="rounded-md bg-warn/15 px-4 py-3 text-center text-warn">
+            <p class="font-medium">Registration is currently closed</p>
+            <p class="mt-1 text-sm">Please contact the administrator to get an account.</p>
+        </div>
+        <p class="mt-6 text-center text-sm">Already have an account? <a href="{{ route('login') }}"
+                class="text-primary">Log in</a></p>
+    @else
+        <form method="POST" action="{{ route('register') }}" class="space-y-4">
+            @csrf
+            <x-field label="Full name" name="name" autocomplete="name" placeholder="Your full name" required
+                autofocus />
+            <x-field label="Email address" name="email" type="email" autocomplete="username"
+                placeholder="you@example.com" required />
+            <x-field label="Password" name="password" type="password" autocomplete="new-password" required />
+            <x-field label="Confirm password" name="password_confirmation" type="password" autocomplete="new-password"
+                required />
 
-    <p class="text-mute text-center text-sm mt-6">
-        Already registered? <a href="{{ route('login') }}" class="text-primary font-medium">Log in</a>
-    </p>
+            <x-button class="w-full">Register</x-button>
+        </form>
+        <p class="mt-6 text-center text-sm">Already have an account? <a href="{{ route('login') }}"
+                class="text-primary">Log in</a></p>
+    @endif
 </x-guest-layout>

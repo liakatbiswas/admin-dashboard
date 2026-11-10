@@ -1,56 +1,43 @@
-<x-app-layout title="Dashboard">
-    <div class="space-y-6">
+<x-app-layout title="Dashboard" title="Dashboard">
+    @php
+        $stats = [
+            ['label' => 'Total users', 'value' => $totalUsers, 'icon' => 'users', 'tone' => 'b'],
+            ['label' => 'Active users', 'value' => $activeUsers, 'icon' => 'check', 'tone' => 'g'],
+            ['label' => 'Roles', 'value' => $totalRoles, 'icon' => 'lock', 'tone' => 's'],
+            [
+                'label' => 'Registration',
+                'value' => $registrationEnabled ? 'Open' : 'Closed',
+                'icon' => 'gear',
+                'tone' => $registrationEnabled ? 'g' : 'y',
+            ],
+        ];
+        $tones = [
+            'b' => 'bg-tint text-primary',
+            'g' => 'bg-ok/15 text-ok',
+            's' => 'bg-info/15 text-info',
+            'y' => 'bg-warn/15 text-warn',
+        ];
+    @endphp
 
-        <section class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
-            <span class="grid size-12 flex-none place-items-center rounded-md rounded-full! bg-tint text-primary"><x-icon
-                    name="user" /></span>
-            <div>
-                <h2 class="text-[17px] text-head font-medium">স্বাগতম, {{ auth()->user()->name }}</h2>
-                <p class="text-mute">আপনার role: {{ auth()->user()->getRoleNames()->implode(', ') ?: '—' }}</p>
-            </div>
-        </section>
-
-        <section class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            @can('users.view')
-                <div class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
-                    <span class="grid size-12 flex-none place-items-center rounded-md bg-tint text-primary"><x-icon
-                            name="users" /></span>
-                    <div>
-                        <h5 class="text-head font-medium">মোট User</h5>
-                        <p class="text-mute">{{ $totalUsers }}</p>
-                    </div>
-                </div>
-                <div class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
-                    <span class="grid size-12 flex-none place-items-center rounded-md bg-ok/15 text-ok"><x-icon
-                            name="check" /></span>
-                    <div>
-                        <h5 class="text-head font-medium">সক্রিয় User</h5>
-                        <p class="text-mute">{{ $activeUsers }}</p>
-                    </div>
-                </div>
-            @endcan
-            @can('roles.manage')
-                <div class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
-                    <span class="grid size-12 flex-none place-items-center rounded-md bg-warn/15 text-warn"><x-icon
-                            name="layout" /></span>
-                    <div>
-                        <h5 class="text-head font-medium">মোট Role</h5>
-                        <p class="text-mute">{{ $totalRoles }}</p>
-                    </div>
-                </div>
-            @endcan
-            <div class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
-                <span class="grid size-12 flex-none place-items-center rounded-md bg-info/15 text-info"><x-icon
-                        name="form" /></span>
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        @foreach ($stats as $stat)
+            <x-card class="flex items-center gap-4 p-5">
+                <span class="grid size-12 flex-none place-items-center rounded-md {{ $tones[$stat['tone']] }}">
+                    <x-icon :name="$stat['icon']" class="size-6" />
+                </span>
                 <div>
-                    <h5 class="text-head font-medium">Registration</h5>
-                    <p class="text-mute">{{ $registrationEnabled ? 'চালু' : 'বন্ধ' }}</p>
+                    <p class="text-sm text-mute">{{ $stat['label'] }}</p>
+                    <p class="text-2xl font-medium text-head">{{ $stat['value'] }}</p>
                 </div>
-            </div>
-        </section>
-
-        @can('settings.manage')
-            @include('settings._registration-toggle')
-        @endcan
+            </x-card>
+        @endforeach
     </div>
+
+    <x-card class="mt-6 p-6">
+        <h2 class="text-[15px] font-medium text-head">Welcome, {{ auth()->user()->name }}</h2>
+        <p class="mt-1 text-mute">Use the menu on the left to manage users, roles and settings. Your own profile is
+            under
+            My
+            profile.</p>
+    </x-card>
 </x-app-layout>

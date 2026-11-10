@@ -1,16 +1,20 @@
-<x-guest-layout>
-    <h4 class="text-xl text-head font-medium text-center">Verify your email</h4>
-    <p class="text-mute text-center mt-2 mb-6">আপনার ইমেইলে পাঠানো লিংকে ক্লিক করে ইমেইল যাচাই করুন।</p>
+<x-guest-layout title="Verify email">
+    <h4 class="text-center text-xl font-medium text-head">Verify your email</h4>
+    <p class="mb-6 mt-1 text-center text-mute">We sent a verification link to your email. Click it to activate your
+        account. Did not get it? Request another below.</p>
 
-    <form method="POST" action="{{ route('verification.send') }}" class="mb-3">
-        @csrf
-        <button
-            class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8] w-full">Resend
-            email</button>
-    </form>
+    @if (session('status') === 'verification-link-sent')
+        <x-alert>A new verification link has been sent to your email address.</x-alert>
+    @endif
 
-    <form method="POST" action="{{ route('logout') }}" class="text-center">
-        @csrf
-        <button class="text-mute text-sm underline">Log out</button>
-    </form>
+    <div class="flex flex-col gap-3">
+        <form method="POST" action="{{ route('verification.send') }}">
+            @csrf
+            <x-button class="w-full">Resend verification email</x-button>
+        </form>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <x-button variant="s" class="w-full">Log out</x-button>
+        </form>
+    </div>
 </x-guest-layout>

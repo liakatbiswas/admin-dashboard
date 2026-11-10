@@ -1,12 +1,12 @@
-<x-guest-layout>
-    <h4 class="text-xl text-head font-medium text-center">Two-factor authentication</h4>
-    <p class="text-mute text-center mt-1 mb-6">Authenticator অ্যাপের কোড দিন, অথবা একটি recovery code ব্যবহার করুন।</p>
+<x-guest-layout title="Two-factor authentication">
+    <h4 class="text-center text-xl font-medium text-head">Two-factor authentication</h4>
+    <p class="mb-6 mt-1 text-center text-mute">Enter the 6-digit code from your authenticator app, or one of your
+        recovery codes.</p>
 
-    <form method="POST" action="{{ route('two-factor.login') }}">
+    <form method="POST" action="{{ route('two-factor.login') }}" class="space-y-4">
         @csrf
         <x-field label="Authentication code" name="code" inputmode="numeric" autocomplete="one-time-code" autofocus />
-        <x-field label="Recovery code" name="recovery_code" />
-        <button
-            class="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 bg-primary text-white hover:bg-[#2862d8] w-full">Verify</button>
+        <x-field label="Or recovery code" name="recovery_code" autocomplete="one-time-code" />
+        <x-button class="w-full">Verify</x-button>
     </form>
 </x-guest-layout>
