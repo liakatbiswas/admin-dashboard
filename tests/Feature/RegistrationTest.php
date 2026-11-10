@@ -17,7 +17,8 @@ class RegistrationTest extends TestCase
 
     public function test_open_registration_creates_a_student(): void
     {
-        $this->get('/register')->assertOk()->assertSee('Confirm Password');
+
+        $this->get('/register')->assertOk()->assertSee('Confirm password');
 
         $this->post('/register', $this->payload);
 

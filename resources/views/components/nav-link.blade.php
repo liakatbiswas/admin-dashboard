@@ -1,5 +1,5 @@
-@props(['active' => false])
-<a
-    {{ $attributes->merge(['class' => 'block px-3 py-2 rounded-lg ' . ($active ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800')]) }}>
-    {{ $slot }}
+@props(['href', 'icon' => 'box', 'active' => false])
+<a href="{{ $href }}" class="nv {{ $active ? 'on' : '' }}">
+    <x-icon :name="$icon" />
+    <span class="lbl">{{ $slot }}</span>
 </a>

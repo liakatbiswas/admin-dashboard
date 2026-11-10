@@ -1,10 +1,13 @@
 <x-app-layout title="User Edit">
-
-    <form method="POST" action="{{ route('users.update', $user) }}" class="bg-white rounded-xl shadow p-6 max-w-xl">
+<section class="card p-6 max-w-2xl">
+    <form method="POST" action="{{ route('users.update', $user) }}">
         @csrf
         @method('PUT')
         @include('users._form')
-        <button class="bg-indigo-600 text-white rounded-lg px-4 py-2">Update</button>
-        <a href="{{ route('users.index') }}" class="ml-3 text-sm text-gray-600">Cancel</a>
+        <div class="flex flex-wrap gap-3">
+            <button class="btn btn-p">Update</button>
+            <a href="{{ route('users.index') }}" class="btn btn-s">Cancel</a>
+        </div>
     </form>
+</section>
 </x-app-layout>

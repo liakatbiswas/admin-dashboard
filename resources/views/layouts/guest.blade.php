@@ -1,22 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name') }}</title>
+    <script>
+        (function () {
+            var h = document.documentElement;
+            try {
+                var t = localStorage.getItem('theme');
+                if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) h.classList.add('dark');
+            } catch (e) {}
+        })();
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+<body>
+<button class="icb" id="th" type="button" aria-label="Light/Dark mode"
+    style="position:fixed;top:16px;right:16px;background:var(--cd)">
+    <x-icon name="moon" class="i-moon" />
+    <x-icon name="sun" class="i-sun" />
+</button>
 
-<body class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-xl shadow p-6">
-        <h1 class="text-xl font-semibold mb-4 text-center">{{ config('app.name') }}</h1>
+<div class="au">
+    <div class="card">
+        <a href="{{ url('/') }}" class="flex items-center justify-center gap-2 mb-6">
+            <x-logo />
+            <span class="hd font-semibold text-lg">{{ config('app.name') }}</span>
+        </a>
 
         @if (session('status'))
-            <div class="mb-4 text-sm text-green-700 bg-green-50 p-3 rounded">{{ session('status') }}</div>
+            <div class="alert-ok">{{ session('status') }}</div>
         @endif
         @if ($errors->any())
-            <div class="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">
+            <div class="alert-err">
                 @foreach ($errors->all() as $error)
                     <p>{{ $error }}</p>
                 @endforeach
@@ -25,6 +42,6 @@
 
         {{ $slot }}
     </div>
+</div>
 </body>
-
 </html>
