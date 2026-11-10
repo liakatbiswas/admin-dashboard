@@ -1,45 +1,50 @@
 <x-app-layout title="Dashboard">
     <div class="space-y-6">
 
-        <section class="card p-6 flex items-center gap-4">
-            <span class="ib rd c-b"><x-icon name="user" /></span>
+        <section class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
+            <span class="grid size-12 flex-none place-items-center rounded-md rounded-full! bg-tint text-primary"><x-icon
+                    name="user" /></span>
             <div>
-                <h2 class="hd font-medium" style="font-size:17px">স্বাগতম, {{ auth()->user()->name }}</h2>
-                <p class="muted">আপনার role: {{ auth()->user()->getRoleNames()->implode(', ') ?: '—' }}</p>
+                <h2 class="text-[17px] text-head font-medium">স্বাগতম, {{ auth()->user()->name }}</h2>
+                <p class="text-mute">আপনার role: {{ auth()->user()->getRoleNames()->implode(', ') ?: '—' }}</p>
             </div>
         </section>
 
         <section class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             @can('users.view')
-                <div class="card p-6 flex items-center gap-4">
-                    <span class="ib c-b"><x-icon name="users" /></span>
+                <div class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
+                    <span class="grid size-12 flex-none place-items-center rounded-md bg-tint text-primary"><x-icon
+                            name="users" /></span>
                     <div>
-                        <h5 class="hd font-medium">মোট User</h5>
-                        <p class="muted">{{ $totalUsers }}</p>
+                        <h5 class="text-head font-medium">মোট User</h5>
+                        <p class="text-mute">{{ $totalUsers }}</p>
                     </div>
                 </div>
-                <div class="card p-6 flex items-center gap-4">
-                    <span class="ib c-g"><x-icon name="check" /></span>
+                <div class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
+                    <span class="grid size-12 flex-none place-items-center rounded-md bg-ok/15 text-ok"><x-icon
+                            name="check" /></span>
                     <div>
-                        <h5 class="hd font-medium">সক্রিয় User</h5>
-                        <p class="muted">{{ $activeUsers }}</p>
+                        <h5 class="text-head font-medium">সক্রিয় User</h5>
+                        <p class="text-mute">{{ $activeUsers }}</p>
                     </div>
                 </div>
             @endcan
             @can('roles.manage')
-                <div class="card p-6 flex items-center gap-4">
-                    <span class="ib c-y"><x-icon name="layout" /></span>
+                <div class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
+                    <span class="grid size-12 flex-none place-items-center rounded-md bg-warn/15 text-warn"><x-icon
+                            name="layout" /></span>
                     <div>
-                        <h5 class="hd font-medium">মোট Role</h5>
-                        <p class="muted">{{ $totalRoles }}</p>
+                        <h5 class="text-head font-medium">মোট Role</h5>
+                        <p class="text-mute">{{ $totalRoles }}</p>
                     </div>
                 </div>
             @endcan
-            <div class="card p-6 flex items-center gap-4">
-                <span class="ib c-s"><x-icon name="form" /></span>
+            <div class="rounded-lg bg-card shadow-card p-6 flex items-center gap-4">
+                <span class="grid size-12 flex-none place-items-center rounded-md bg-info/15 text-info"><x-icon
+                        name="form" /></span>
                 <div>
-                    <h5 class="hd font-medium">Registration</h5>
-                    <p class="muted">{{ $registrationEnabled ? 'চালু' : 'বন্ধ' }}</p>
+                    <h5 class="text-head font-medium">Registration</h5>
+                    <p class="text-mute">{{ $registrationEnabled ? 'চালু' : 'বন্ধ' }}</p>
                 </div>
             </div>
         </section>

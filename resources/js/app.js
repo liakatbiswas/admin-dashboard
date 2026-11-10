@@ -1,3 +1,5 @@
+import '../css/app.css';
+
 // Template layout behaviour (theme, sidebar, dropdowns, settings panel).
 // Markup is server-rendered by Blade, so this file only wires up interactions.
 const H = document.documentElement;
@@ -6,10 +8,10 @@ const syncSettings = () => {
     const dark = H.classList.contains('dark');
     const small = H.classList.contains('sm-nav');
     document.querySelectorAll('[data-th]').forEach((el) => {
-        el.className = 'btn ' + ((el.dataset.th === 'dark') === dark ? 'btn-ps' : 'btn-s');
+        el.className = 'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 ' + ((el.dataset.th === 'dark') === dark ? 'bg-tint text-primary' : 'bg-soft text-head hover:bg-line');
     });
     document.querySelectorAll('[data-sn]').forEach((el) => {
-        el.className = 'btn ' + ((el.dataset.sn === '1') === small ? 'btn-ps' : 'btn-s');
+        el.className = 'inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent px-4 py-2 text-sm font-medium leading-snug transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary/45 ' + ((el.dataset.sn === '1') === small ? 'bg-tint text-primary' : 'bg-soft text-head hover:bg-line');
     });
 };
 
