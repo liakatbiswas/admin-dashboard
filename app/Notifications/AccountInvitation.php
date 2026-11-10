@@ -14,10 +14,7 @@ class AccountInvitation extends Notification implements ShouldQueue
     /**
      * Create a new notification instance.
      */
-    public function __construct()
-    {
-        //
-    }
+    public function __construct(public string $token) {}
 
     /**
      * Get the notification's delivery channels.

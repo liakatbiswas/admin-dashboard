@@ -59,26 +59,6 @@
             </header>
 
             <main class="p-4 md:p-6">
-                {{-- @php
-                    $flash =
-                        session('success') ??
-                        match (session('status')) {
-                            'profile-information-updated' => 'প্রোফাইল আপডেট হয়েছে।',
-                            'password-updated' => 'পাসওয়ার্ড আপডেট হয়েছে।',
-                            default => session('status'),
-                        };
-                @endphp
-                @if ($flash)
-                    <div class="mb-4 text-sm text-green-700 bg-green-50 p-3 rounded">{{ $flash }}</div>
-                @endif
-                @if ($errors->any())
-                    <div class="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">
-                        @foreach ($errors->all() as $error)
-                            <p>{{ $error }}</p>
-                        @endforeach
-                    </div>
-                @endif --}}
-
                 @php
                     $flash =
                         session('success') ??
@@ -92,6 +72,17 @@
                             default => session('status'),
                         };
                 @endphp
+
+                @if ($flash)
+                    <div class="mb-4 text-sm text-green-700 bg-green-50 p-3 rounded">{{ $flash }}</div>
+                @endif
+                @if ($errors->any())
+                    <div class="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">
+                        @foreach ($errors->all() as $error)
+                            <p>{{ $error }}</p>
+                        @endforeach
+                    </div>
+                @endif
 
                 {{ $slot }}
             </main>
