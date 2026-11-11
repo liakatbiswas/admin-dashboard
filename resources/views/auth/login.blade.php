@@ -25,4 +25,19 @@
 
         <x-button class="w-full">Log in</x-button>
     </form>
+
+    @if (Route::has('register'))
+        <div class="relative my-6">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-line"></div>
+            </div>
+            <p class="relative mx-auto w-fit bg-card px-3 text-xs text-mute">New here?</p>
+        </div>
+
+        <a href="{{ route('register') }}"
+            class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-line bg-card px-4 py-2 text-sm font-medium text-head transition hover:bg-soft">
+            <x-icon name="user" class="size-4" /> Register a new account
+        </a>
+    @endif
+
 </x-guest-layout>

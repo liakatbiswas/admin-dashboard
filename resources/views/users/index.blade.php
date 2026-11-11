@@ -90,7 +90,7 @@
                         <td>
                             @if ($canEdit && $canManage && !$user->trashed() && !$isSelf)
                                 <form method="POST" action="{{ route('users.toggle', $user) }}"
-                                    @if ($user->is_active) data-confirm="{{ $user->name }} কে নিষ্ক্রিয় করবেন?" @endif>
+                                    @if ($user->is_active) data-confirm="Are you sure you want to deactivate {{ $user->name }}?" @endif>
                                     @csrf
                                     @method('PATCH')
                                     <x-button :variant="$user->is_active ? 's' : 'ps'" size="sm">

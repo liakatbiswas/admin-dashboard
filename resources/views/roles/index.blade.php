@@ -46,7 +46,7 @@
                                 @endif
                                 @if (!$protected)
                                     <form method="POST" action="{{ route('roles.destroy', $role) }}"
-                                        data-confirm="'{{ $role->name }}' role মুছবেন?">
+                                        data-confirm="Are you sure you want to delete the '{{ $role->name }}' role?">
                                         @csrf
                                         @method('DELETE')
                                         <x-button variant="bad" size="sm">

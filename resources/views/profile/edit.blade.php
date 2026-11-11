@@ -90,7 +90,8 @@
                         <li>{{ $code }}</li>
                     @endforeach
                 </ul>
-                <form method="POST" action="{{ route('two-factor.disable') }}" data-confirm="2FA বন্ধ করবেন?">
+                <form method="POST" action="{{ route('two-factor.disable') }}"
+                    data-confirm="Are you sure you want to disable 2FA?">
                     @csrf
                     @method('DELETE')
                     <x-button variant="bad">Disable 2FA</x-button>

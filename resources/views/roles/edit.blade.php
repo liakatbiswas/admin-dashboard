@@ -1,8 +1,9 @@
 <x-app-layout title="Role Edit" :crumbs="['Roles' => route('roles.index'), 'Edit Role' => null]">
     <x-card class="p-6">
         @if ($isProtected)
-            <p class="mb-5 rounded-md bg-warn/15 px-4 py-3 text-sm text-warn">এটি একটি protected role। নাম বদলানো যাবে
-                না, তবে permission বদলানো যাবে।</p>
+            <p class="mb-5 rounded-md bg-warn/15 px-4 py-3 text-sm text-warn">
+                This is a protected role. The name cannot be changed, but the permissions can be modified.
+            </p>
         @endif
         <form method="POST" action="{{ route('roles.update', $role) }}" class="space-y-6">
             @csrf
