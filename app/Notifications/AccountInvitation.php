@@ -39,11 +39,11 @@ class AccountInvitation extends Notification implements ShouldQueue
         $minutes = config('auth.passwords.'.config('fortify.passwords').'.expire');
 
         return (new MailMessage)
-            ->subject(config('app.name').': আপনার অ্যাকাউন্ট তৈরি হয়েছে')
+            ->subject(config('app.name').': Your account has been created')
             ->greeting('Hello '.$notifiable->name.'!')
-            ->line('আপনার জন্য একটি অ্যাকাউন্ট খোলা হয়েছে। পাসওয়ার্ড সেট করতে নিচের বাটনে ক্লিক করুন।')
+            ->line('An account has been created for you. Click the button below to set your password.')
             ->action('Set Password', $url)
-            ->line("এই লিংক {$minutes} মিনিট পর্যন্ত কার্যকর থাকবে।");
+            ->line("This link will remain valid for {$minutes} minutes.");
     }
 
     /**

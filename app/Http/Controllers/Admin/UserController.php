@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\AccountInvitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -108,7 +109,12 @@ class UserController extends Controller
         $user->save();
 
         if ($user->wasChanged('email')) {
-            $user->sendEmailVerificationNotification();
+            if ($user->invited_at) {
+                // Invite not accepted yet: the old token belongs to the old address, so send a fresh one
+                $this->sendInvite($user);
+            } else {
+                $user->sendEmailVerificationNotification();
+            }
         }
 
         if ($user->isNot(auth()->user()) && isset($data['role'])) {
@@ -140,7 +146,7 @@ class UserController extends Controller
         $user->update(['is_active' => ! $user->is_active]);
 
         if (! $user->is_active) {
-            $user->tokens()->delete(); // Sanctum token deleted
+            $this->revokeAccess($user);
         }
 
         return back()->with('success', $user->is_active ? 'User has been activated.' : 'User has been deactivated.');
@@ -154,8 +160,8 @@ class UserController extends Controller
             return back()->withErrors(['user' => 'You cannot delete your account.']);
         }
 
-        $user->tokens()->delete();
-        $user->delete(); // the "deleted" event is logged automatically
+        $this->revokeAccess($user); // must run before delete()
+        $user->delete();            // the "deleted" event is logged automatically
 
         return back()->with('success', 'User has been deleted (can be restored).');
     }
@@ -196,5 +202,17 @@ class UserController extends Controller
     {
         $token = Password::broker(config('fortify.passwords'))->createToken($user);
         $user->notify(new AccountInvitation($token));
+    }
+
+    private function revokeAccess(User $user): void
+    {
+        $user->tokens()->delete();                                   // Sanctum tokens
+        $user->forceFill(['remember_token' => null])->saveQuietly(); // invalidate remember-me cookie
+
+        if (config('session.driver') === 'database') {               // web sessions
+            DB::table(config('session.table', 'sessions'))
+                ->where('user_id', $user->id)
+                ->delete();
+        }
     }
 }

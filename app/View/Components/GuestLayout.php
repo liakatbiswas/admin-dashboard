@@ -8,12 +8,16 @@ use Illuminate\View\Component;
 
 class GuestLayout extends Component
 {
-    /**
-     * Create a new component instance.
+    public string $title;
+
+    public array $crumbs;
+
+    /**     * Create a new component instance.
      */
-    public function __construct()
+    public function __construct(string $title = 'Dashboard', array $crumbs = [])
     {
-        //
+        $this->title = $title;
+        $this->crumbs = $crumbs;
     }
 
     /**

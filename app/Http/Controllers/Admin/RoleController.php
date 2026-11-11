@@ -35,12 +35,12 @@ class RoleController extends Controller
         activity()->causedBy(auth()->user())->performedOn($role)
             ->log("Role created: {$role->name}");
 
-        return redirect()->route('roles.index')->with('success', "Role '{$role->name}' তৈরি হয়েছে।");
+        return redirect()->route('roles.index')->with('success', "Role '{$role->name}' has been created.");
     }
 
     public function edit(Role $role)
     {
-        abort_if($role->name === 'super-admin', 403, 'Super admin role বদলানো যাবে না।');
+        abort_if($role->name === 'super-admin', 403, 'The super admin role cannot be changed.');
 
         return view('roles.edit', [
             'role' => $role,
@@ -52,11 +52,13 @@ class RoleController extends Controller
 
     public function update(RoleRequest $request, Role $role): RedirectResponse
     {
-        abort_if($role->name === 'super-admin', 403, 'Super admin role বদলানো যাবে না।');
+        abort_if($role->name === 'super-admin', 403, 'The super admin role cannot be changed.');
 
         $data = $request->validated();
 
-        // নিজের কাছে নেই এমন permission যা role-এ আগে থেকেই আছে, সেগুলো মুছে যেতে দেব না
+        /* I will not allow the removal of permissions that are not present
+         * in my own set but are already included in the role.
+         */
         $assignable = auth()->user()->assignablePermissions()->pluck('name');
         $locked = $role->permissions->pluck('name')->diff($assignable);
 
@@ -68,17 +70,17 @@ class RoleController extends Controller
         activity()->causedBy(auth()->user())->performedOn($role)
             ->log("Role updated: {$role->name}");
 
-        return redirect()->route('roles.index')->with('success', 'Role আপডেট হয়েছে।');
+        return redirect()->route('roles.index')->with('success', 'Role has been updated.');
     }
 
     public function destroy(Role $role): RedirectResponse
     {
         if ($this->isProtected($role)) {
-            return back()->withErrors(['role' => 'এই role মোছা যাবে না।']);
+            return back()->withErrors(['role' => 'This role cannot be deleted.']);
         }
 
         if ($role->users()->exists()) {
-            return back()->withErrors(['role' => 'এই role-এ user আছে, আগে তাদের role বদলান।']);
+            return back()->withErrors(['role' => 'There are users in this role; change their roles first.']);
         }
 
         $name = $role->name;
@@ -86,7 +88,7 @@ class RoleController extends Controller
 
         activity()->causedBy(auth()->user())->log("Role deleted: {$name}");
 
-        return back()->with('success', "Role '{$name}' মুছে ফেলা হয়েছে।");
+        return back()->with('success', "Role '{$name}' has been deleted.");
     }
 
     private function isProtected(Role $role): bool

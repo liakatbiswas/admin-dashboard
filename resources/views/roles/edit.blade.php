@@ -1,5 +1,4 @@
-<x-app-layout title="Role Edit" :crumbs="['Edit Role' => null]">
-
+<x-app-layout title="Role Edit" :crumbs="['Roles' => route('roles.index'), 'Edit Role' => null]">
     <x-card class="p-6">
         @if ($isProtected)
             <p class="mb-5 rounded-md bg-warn/15 px-4 py-3 text-sm text-warn">এটি একটি protected role। নাম বদলানো যাবে
