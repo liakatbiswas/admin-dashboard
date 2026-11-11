@@ -1,3 +1,11 @@
+@php
+    $me = auth()->user();
+    $canCreate = $me->can('users.create');
+    $canEdit = $me->can('users.edit');
+    $canDelete = $me->can('users.delete');
+    $hasAnyAction = $canCreate || $canEdit || $canDelete;
+@endphp
+
 <x-app-layout title="Users" :crumbs="['Users' => null]">
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -16,13 +24,17 @@
             <x-button variant="s">Search</x-button>
         </form>
 
-        @can('users.create')
+        @if ($canCreate)
             <a href="{{ route('users.create') }}"
                 class="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#2862d8]">
                 <x-icon name="plus" class="size-4" /> Invite user
             </a>
-        @endcan
+        @endif
     </div>
+
+    @error('user')
+        <x-alert tone="bad">{{ $message }}</x-alert>
+    @enderror
 
     <x-card class="overflow-x-auto">
         <table
@@ -40,6 +52,11 @@
             </thead>
             <tbody>
                 @forelse ($users as $user)
+                    @php
+                        // Policy runs once per row, and only if the viewer has any action permission
+                        $canManage = $hasAnyAction && $me->can('manage', $user);
+                        $isSelf = $me->id === $user->id;
+                    @endphp
                     <tr class="{{ $user->trashed() ? 'opacity-60' : '' }}">
                         <td>
                             <div class="flex items-center gap-3">
@@ -71,66 +88,52 @@
 
                         {{-- Change status: only for live users, not for yourself --}}
                         <td>
-                            @if (!$user->trashed() && auth()->id() !== $user->id)
-                                @can('users.edit', $user)
-                                    @can('manage', $user)
-                                        <form method="POST" action="{{ route('users.toggle', $user) }}"
-                                            @if ($user->is_active) data-confirm="{{ $user->name }} কে নিষ্ক্রিয় করবেন?" @endif>
-                                            @csrf
-                                            @method('PATCH')
-                                            <x-button :variant="$user->is_active ? 's' : 'ps'" size="sm">
-                                                {{ $user->is_active ? 'Deactivate' : 'Activate' }}
-                                            </x-button>
-                                        </form>
-                                    @endcan
-                                @endcan
+                            @if ($canEdit && $canManage && !$user->trashed() && !$isSelf)
+                                <form method="POST" action="{{ route('users.toggle', $user) }}"
+                                    @if ($user->is_active) data-confirm="{{ $user->name }} কে নিষ্ক্রিয় করবেন?" @endif>
+                                    @csrf
+                                    @method('PATCH')
+                                    <x-button :variant="$user->is_active ? 's' : 'ps'" size="sm">
+                                        {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                                    </x-button>
+                                </form>
                             @endif
                         </td>
 
                         <td>
                             <div class="flex items-center justify-end gap-2">
                                 @if ($user->trashed())
-                                    @can('users.delete')
-                                        @can('manage', $user)
-                                            <form method="POST" action="{{ route('users.restore', $user) }}">
-                                                @csrf
-                                                @method('PATCH')
-                                                <x-button variant="ps" size="sm">Restore</x-button>
-                                            </form>
-                                        @endcan
-                                    @endcan
+                                    @if ($canDelete && $canManage)
+                                        <form method="POST" action="{{ route('users.restore', $user) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <x-button variant="ps" size="sm">Restore</x-button>
+                                        </form>
+                                    @endif
                                 @else
-                                    @can('users.create')
-                                        @can('manage', $user)
-                                            <form method="POST" action="{{ route('users.invite', $user) }}">
-                                                @csrf
-                                                <x-button variant="s" size="sm">Resend invite</x-button>
-                                            </form>
-                                        @endcan
-                                    @endcan
+                                    @if ($canCreate && $canManage && $user->invited_at)
+                                        <form method="POST" action="{{ route('users.invite', $user) }}">
+                                            @csrf
+                                            <x-button variant="s" size="sm">Resend invite</x-button>
+                                        </form>
+                                    @endif
 
-                                    @can('users.edit')
-                                        @can('manage', $user)
-                                            <a href="{{ route('users.edit', $user) }}"
-                                                class="inline-flex items-center gap-1 rounded-md bg-soft px-3 py-1 text-xs font-medium text-head hover:bg-line">
-                                                <x-icon name="edit" class="size-3.5" /> Edit
-                                            </a>
-                                        @endcan
-                                    @endcan
+                                    @if ($canEdit && $canManage)
+                                        <a href="{{ route('users.edit', $user) }}"
+                                            class="inline-flex items-center gap-1 rounded-md bg-soft px-3 py-1 text-xs font-medium text-head hover:bg-line">
+                                            <x-icon name="edit" class="size-3.5" /> Edit
+                                        </a>
+                                    @endif
 
-                                    @if (auth()->id() !== $user->id)
-                                        @can('users.delete')
-                                            @can('manage', $user)
-                                                <form method="POST" action="{{ route('users.destroy', $user) }}"
-                                                    data-confirm="{{ $user->name }} কে মুছে ফেলবেন?">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <x-button variant="bad" size="sm">
-                                                        <x-icon name="trash" class="size-3.5" /> Delete
-                                                    </x-button>
-                                                </form>
-                                            @endcan
-                                        @endcan
+                                    @if ($canDelete && $canManage && !$isSelf)
+                                        <form method="POST" action="{{ route('users.destroy', $user) }}"
+                                            data-confirm="{{ $user->name }} কে মুছে ফেলবেন?">
+                                            @csrf
+                                            @method('DELETE')
+                                            <x-button variant="bad" size="sm">
+                                                <x-icon name="trash" class="size-3.5" /> Delete
+                                            </x-button>
+                                        </form>
                                     @endif
                                 @endif
                             </div>

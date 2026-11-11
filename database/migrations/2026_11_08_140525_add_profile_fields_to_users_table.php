@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('bio')->nullable()->after('avatar');
             $table->text('address')->nullable()->after('bio');
             $table->boolean('is_active')->default(true)->after('address');
+            $table->timestamp('invited_at')->nullable()->after('is_active');
             $table->softDeletes();
         });
     }
@@ -27,7 +28,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['phone', 'avatar', 'bio', 'address', 'is_active']);
+            $table->dropColumn(['phone', 'avatar', 'bio', 'address', 'is_active', 'invited_at']);
             $table->dropSoftDeletes();
         });
     }

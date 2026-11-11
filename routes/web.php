@@ -25,18 +25,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->controller(UserController::class)->group(function () {
         Route::get('users', 'index')->middleware('can:users.view')->name('users.index');
         Route::get('users/create', 'create')->middleware('can:users.create')->name('users.create');
-        Route::post('users', 'store')->middleware('can:users.create')->name('users.store');
+        Route::post('users', 'store')
+            ->middleware(['can:users.create', 'throttle:user-creations'])
+            ->name('users.store');
         Route::get('users/{user}/edit', 'edit')->middleware('can:users.edit')->name('users.edit');
         Route::put('users/{user}', 'update')->middleware('can:users.edit')->name('users.update');
         Route::patch('users/{user}/toggle', 'toggle')->middleware('can:users.edit')->name('users.toggle');
-        // Route::post('users/{user}/invite', 'invite')->middleware('can:users.create')->name('users.invite');
-        Route::delete('users/{user}', 'destroy')->middleware('can:users.delete')->name('users.destroy');
-        Route::patch('users/{user}/restore', 'restore')->middleware('can:users.delete')
-            ->withTrashed()->name('users.restore');
-
-        Route::post('users/{user}/invite', 'invite')->middleware(['can:users.create', 'throttle:user-invitations'])
+        Route::post('users/{user}/invite', 'invite')
+            ->middleware(['can:users.create', 'throttle:user-invitations'])
             ->name('users.invite');
-
+        Route::delete('users/{user}', 'destroy')->middleware('can:users.delete')->name('users.destroy');
+        Route::patch('users/{user}/restore', 'restore')
+            ->middleware('can:users.delete')
+            ->withTrashed()
+            ->name('users.restore');
     });
 
     Route::middleware('can:roles.manage')->prefix('admin')->group(function () {

@@ -17,7 +17,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $users = User::query()
-            ->with('roles')
+            ->with(['roles.permissions', 'permissions'])
             ->when($request->status === 'trashed', fn ($q) => $q->onlyTrashed())
             ->when($request->status === 'active', fn ($q) => $q->where('is_active', true))
             ->when($request->status === 'inactive', fn ($q) => $q->where('is_active', false))
@@ -53,14 +53,23 @@ class UserController extends Controller
             'password' => Str::random(40),
             'email_verified_at' => now(),
             'is_active' => true,
+            'invited_at' => now(),
         ]);
+
+        // Skip the automatic "created" log; the manual "invited" log below replaces it
+        $user->disableLogging();
         $user->save();
+        $user->enableLogging();
+
         $user->syncRoles($data['role']);
 
         activity()
             ->causedBy(auth()->user())
             ->performedOn($user)
-            ->withProperties(['role' => $data['role']])
+            ->withProperties([
+                'role' => $data['role'],
+                'attributes' => $user->only(['name', 'email', 'phone']),
+            ])
             ->log("User invited: {$user->email}");
 
         $this->sendInvite($user);
@@ -168,6 +177,11 @@ class UserController extends Controller
     public function invite(User $user): RedirectResponse
     {
         Gate::authorize('manage', $user);
+
+        if (is_null($user->invited_at)) {
+            return back()->withErrors(['user' => 'This user has already set a password.']);
+        }
+
         $this->sendInvite($user);
 
         activity()

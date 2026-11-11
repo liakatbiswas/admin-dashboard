@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
@@ -52,6 +53,14 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
+        Event::listen(PasswordReset::class, function (PasswordReset $event) {
+            $event->user->forceFill(['invited_at' => null])->save();
+        });
+
+        RateLimiter::for('user-creations', function (Request $request) {
+            // একজন অ্যাডমিন প্রতি মিনিটে সর্বোচ্চ ১০টি নতুন ইউজার তৈরি করতে পারবে
+            return Limit::perMinute(10)->by($request->user()->id);
+        });
         RateLimiter::for('user-invitations', function (Request $request) {
             return [
                 Limit::perMinute(3)->by($request->user()->id),
