@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 use Throwable;
 
 class SettingController extends Controller
@@ -20,6 +21,16 @@ class SettingController extends Controller
             'admissionOn' => AdmissionOnOff::isOn(),
             'siteSetting' => SiteSetting::current(),
         ]);
+    }
+
+    public function registration(): View
+    {
+        return view('settings.registration', ['admissionOn' => AdmissionOnOff::isOn()]);
+    }
+
+    public function site(): View
+    {
+        return view('settings.site', ['siteSetting' => SiteSetting::current()]);
     }
 
     public function updateSite(SiteSettingRequest $request): RedirectResponse

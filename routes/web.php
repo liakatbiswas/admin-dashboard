@@ -23,6 +23,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/settings', [SettingController::class, 'index'])
         ->middleware('can:settings.access')
         ->name('settings.index');
+    Route::get('/admin/settings/registration', [SettingController::class, 'registration'])
+        ->middleware('can:admission.manage')->name('settings.registration');
+    Route::get('/admin/settings/site', [SettingController::class, 'site'])
+        ->middleware('can:settings.site.manage')->name('settings.site');
+    Route::view('/admin/settings/password', 'settings.password')->name('settings.password');
+
     Route::put('/admin/settings/site', [SettingController::class, 'updateSite'])
         ->middleware('can:settings.site.manage')
         ->name('settings.site.update');
