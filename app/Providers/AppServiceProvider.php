@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Fortify\Events\RecoveryCodesGenerated;
+use Laravel\Fortify\Events\TwoFactorAuthenticationConfirmed;
+use Laravel\Fortify\Events\TwoFactorAuthenticationDisabled;
+use Laravel\Fortify\Events\TwoFactorAuthenticationEnabled;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability, $arguments = []) {
             $target = $arguments[0] ?? null;
 
-            // অন্য super-admin-এর ওপর manage চেক policy-র হাতে ছেড়ে দিন
+            // Let the policy decide when managing another super admin.
             if ($ability === 'manage' && $target instanceof User && $target->hasRole('super-admin') && ! $target->is($user)) {
                 return null;
             }
@@ -54,11 +58,24 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(PasswordReset::class, function (PasswordReset $event) {
-            $event->user->forceFill(['invited_at' => null])->save();
+            $event->user->forceFill([
+                'invited_at' => null,
+                'email_verified_at' => $event->user->email_verified_at ?? now(),
+            ])->save();
+            activity('security')->causedBy($event->user)->log('Password reset');
         });
 
+        Event::listen(TwoFactorAuthenticationEnabled::class, fn ($event) =>
+            activity('security')->causedBy($event->user)->log('Two-factor authentication enabled'));
+        Event::listen(TwoFactorAuthenticationConfirmed::class, fn ($event) =>
+            activity('security')->causedBy($event->user)->log('Two-factor authentication confirmed'));
+        Event::listen(TwoFactorAuthenticationDisabled::class, fn ($event) =>
+            activity('security')->causedBy($event->user)->log('Two-factor authentication disabled'));
+        Event::listen(RecoveryCodesGenerated::class, fn ($event) =>
+            activity('security')->causedBy($event->user)->log('Two-factor recovery codes regenerated'));
+
         RateLimiter::for('user-creations', function (Request $request) {
-            // একজন অ্যাডমিন প্রতি মিনিটে সর্বোচ্চ ১০টি নতুন ইউজার তৈরি করতে পারবে
+            // Limit each administrator to ten user creations per minute.
             return Limit::perMinute(10)->by($request->user()->id);
         });
         RateLimiter::for('user-invitations', function (Request $request) {

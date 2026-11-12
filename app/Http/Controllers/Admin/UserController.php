@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -20,9 +21,9 @@ class UserController extends Controller
         $users = User::query()
             ->with(['roles.permissions', 'permissions'])
             ->when($request->status === 'trashed', fn ($q) => $q->onlyTrashed())
-            ->when($request->status === 'active', fn ($q) => $q->where('is_active', true))
+            ->when($request->status === 'active', fn ($q) => $q->where('is_active', true)->whereNull('invited_at'))
             ->when($request->status === 'inactive', fn ($q) => $q->where('is_active', false))
-            ->when($request->status === 'invited', fn ($q) => $q->whereNotNull('invited_at'))
+            ->when($request->status === 'invited', fn ($q) => $q->where('is_active', true)->whereNotNull('invited_at'))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%'.$request->q.'%';
                 $q->where(fn ($w) => $w->where('name', 'like', $term)
@@ -199,6 +200,30 @@ class UserController extends Controller
             ->log("User restored: {$user->email}");
 
         return back()->with('success', 'The user has been brought back.');
+    }
+
+    public function forceDelete(User $user): RedirectResponse
+    {
+        Gate::authorize('manage', $user);
+
+        if (! $user->trashed()) {
+            return back()->withErrors(['user' => 'Only deleted users can be permanently removed.']);
+        }
+
+        $avatar = $user->avatar;
+
+        DB::transaction(function () use ($user) {
+            $user->tokens()->delete();
+            $user->roles()->detach();
+            $user->permissions()->detach();
+            $user->forceDelete();
+        });
+
+        if ($avatar) {
+            Storage::disk('public')->delete($avatar);
+        }
+
+        return back()->with('success', 'The user has been permanently deleted.');
     }
 
     public function invite(User $user): RedirectResponse

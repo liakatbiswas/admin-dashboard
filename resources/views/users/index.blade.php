@@ -77,14 +77,14 @@
                         <td>
                             @if ($user->trashed())
                                 <span class="rounded bg-bad/15 px-2 py-0.5 text-xs font-medium text-bad">Deleted</span>
+                            @elseif (!$user->is_active)
+                                <span
+                                    class="rounded bg-warn/15 px-2 py-0.5 text-xs font-medium text-warn">Inactive</span>
                             @elseif ($user->invited_at)
                                 <span class="rounded bg-info/15 px-2 py-0.5 text-xs font-medium text-info"
                                     title="Invited {{ $user->invited_at->diffForHumans() }}">Invite pending</span>
-                            @elseif ($user->is_active)
-                                <span class="rounded bg-ok/15 px-2 py-0.5 text-xs font-medium text-ok">Active</span>
                             @else
-                                <span
-                                    class="rounded bg-warn/15 px-2 py-0.5 text-xs font-medium text-warn">Inactive</span>
+                                <span class="rounded bg-ok/15 px-2 py-0.5 text-xs font-medium text-ok">Active</span>
                             @endif
                         </td>
                         <td class="text-mute">{{ $user->created_at->format('d M Y') }}</td>
@@ -111,6 +111,12 @@
                                             @csrf
                                             @method('PATCH')
                                             <x-button variant="ps" size="sm">Restore</x-button>
+                                        </form>
+                                        <form method="POST" action="{{ route('users.force-delete', $user) }}"
+                                            data-confirm="Permanently delete {{ $user->name }}? This cannot be undone.">
+                                            @csrf
+                                            @method('DELETE')
+                                            <x-button variant="bad" size="sm">Delete permanently</x-button>
                                         </form>
                                     @endif
                                 @else

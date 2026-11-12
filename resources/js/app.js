@@ -96,7 +96,7 @@ D.addEventListener('submit', (e) => {
     if (message && !window.confirm(message)) e.preventDefault();
 });
 
-// Role form: "এই গ্রুপের সব" checkbox
+// Role form: select every permission in a group.
 D.addEventListener('change', (e) => {
     if (!e.target.matches('[data-check-all]')) return;
     e.target.closest('fieldset')?.querySelectorAll('.perm').forEach((c) => {

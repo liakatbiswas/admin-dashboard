@@ -3,6 +3,9 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Notifications\AccountEmailChanged;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -20,20 +23,34 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      */
     public function update(User $user, array $input): void
     {
+        $emailChanged = isset($input['email']) && $input['email'] !== $user->email;
+
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'current_password' => $emailChanged
+                ? ['required', 'string', 'current_password:web']
+                : ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:20'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'address' => ['nullable', 'string', 'max:500'],
-            'avatar' => ['nullable', 'image', 'max:1024'],
+            'avatar' => [
+                'nullable',
+                'bail',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:1024',
+                Rule::dimensions()->maxWidth(2000)->maxHeight(2000),
+            ],
+            'remove_avatar' => ['nullable', 'boolean'],
         ])->validateWithBag('updateProfileInformation');
 
+        $oldAvatar = $user->avatar;
+
         if (isset($input['avatar'])) {
-            if ($user->avatar) {
-                Storage::disk('public')->delete($user->avatar);
-            }
             $user->avatar = $input['avatar']->store('avatars', 'public');
+        } elseif (filter_var($input['remove_avatar'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $user->avatar = null;
         }
 
         $data = [
@@ -44,27 +61,30 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'address' => $input['address'] ?? null,
         ];
 
-        if ($input['email'] !== $user->email) {
+        if (isset($input['avatar']) || $user->avatar !== $oldAvatar) {
+            $data['avatar'] = $user->avatar;
+        }
+
+        if ($emailChanged) {
+            $oldEmail = $user->email;
             $user->forceFill($data + ['email_verified_at' => null])->save();
+
+            $user->tokens()->delete();
+            Auth::guard('web')->logoutOtherDevices($input['current_password']);
             $user->sendEmailVerificationNotification();
+
+            try {
+                Notification::route('mail', $oldEmail)
+                    ->notify(new AccountEmailChanged($user->name, $oldEmail, $user->email));
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
         } else {
             $user->forceFill($data)->save();
         }
-    }
 
-    /**
-     * Update the given verified user's profile information.
-     *
-     * @param  array<string, string>  $input
-     */
-    protected function updateVerifiedUser(User $user, array $input): void
-    {
-        $user->forceFill([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'email_verified_at' => null,
-        ])->save();
-
-        $user->sendEmailVerificationNotification();
+        if ($oldAvatar && $oldAvatar !== $user->avatar) {
+            Storage::disk('public')->delete($oldAvatar);
+        }
     }
 }

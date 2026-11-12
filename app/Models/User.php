@@ -54,14 +54,6 @@ class User extends Authenticatable implements MustVerifyEmail
             ->dontLogEmptyChanges();
     }
 
-    // public function assignableRoles(): Collection
-    // {
-    //     return Role::query()
-    //         ->when(! $this->hasRole('super-admin'), fn ($q) => $q->where('name', '!=', 'super-admin'))
-    //         ->orderBy('name')
-    //         ->pluck('name');
-    // }
-
     public function assignableRoles(): Collection
     {
         if ($this->hasRole('super-admin')) {

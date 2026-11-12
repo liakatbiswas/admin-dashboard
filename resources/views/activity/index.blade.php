@@ -2,9 +2,10 @@
 
     <x-card class="mb-6 p-5">
         <form method="GET" action="{{ route('activity.index') }}"
-            class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
             <x-field label="Log" name="log" type="select" :value="request('log')" :options="['' => 'All logs'] + $logNames->mapWithKeys(fn($l) => [$l => $l])->all()" />
             <x-field label="User (name, email or ID)" name="user" type="search" :value="request('user')" placeholder="Search by name, email or ID" />
+            <x-field label="Description" name="q" type="search" :value="request('q')" placeholder="Search description" />
             <x-field label="From" name="from" type="date" :value="request('from')" />
             <x-field label="To" name="to" type="date" :value="request('to')" />
             <div class="flex items-end gap-2">

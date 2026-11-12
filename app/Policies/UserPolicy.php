@@ -14,12 +14,6 @@ class UserPolicy
         //
     }
 
-    // Super admin-এর জন্য Gate::before আগেই true দেয়
-    // public function manage(User $auth, User $target): bool
-    // {
-    //     return ! $target->hasRole('super-admin');
-    // }
-
     public function manage(User $auth, User $target): bool
     {
         if ($target->hasRole('super-admin')) {

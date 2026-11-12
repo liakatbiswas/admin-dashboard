@@ -12,7 +12,7 @@ class UserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // route-এর can: middleware ই অনুমতি দেখে
+        // Route middleware enforces authorization.
         return true;
     }
 

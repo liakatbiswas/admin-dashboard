@@ -14,7 +14,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
-    // Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
     Route::middleware('can:settings.manage')->prefix('admin')->group(function () {
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
@@ -23,7 +23,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::prefix('admin')->controller(UserController::class)->group(function () {
-        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::get('users', 'index')->middleware('can:users.view')->name('users.index');
         Route::get('users/create', 'create')->middleware('can:users.create')->name('users.create');
         Route::post('users', 'store')
@@ -40,6 +39,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('can:users.delete')
             ->withTrashed()
             ->name('users.restore');
+        Route::delete('users/{user}/force-delete', 'forceDelete')
+            ->middleware('can:users.delete')
+            ->withTrashed()
+            ->name('users.force-delete');
     });
 
     Route::middleware('can:roles.manage')->prefix('admin')->group(function () {

@@ -23,7 +23,7 @@ class RolesAndSuperAdminSeeder extends Seeder
         $password = config('permissions.super_admin.password');
 
         if (app()->isProduction() && $password === 'password') {
-            throw new \RuntimeException('Production-এ .env এ SUPER_ADMIN_PASSWORD সেট করুন।');
+            throw new \RuntimeException('Set SUPER_ADMIN_PASSWORD in the production environment.');
         }
 
         $user = User::firstOrCreate(

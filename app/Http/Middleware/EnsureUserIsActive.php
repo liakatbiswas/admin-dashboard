@@ -19,11 +19,18 @@ class EnsureUserIsActive
         $user = $request->user();
 
         if ($user && ! $user->is_active) {
-            Auth::guard('web')->logout();
-
             if ($request->hasSession()) {
+                if (Auth::guard('web')->id() === $user->getAuthIdentifier()) {
+                    Auth::guard('web')->logout();
+                }
+
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
+            }
+
+            $currentToken = $user->currentAccessToken();
+            if ($currentToken && method_exists($currentToken, 'delete')) {
+                $currentToken->delete();
             }
 
             if ($request->is('api/*') || $request->expectsJson()) {

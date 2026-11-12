@@ -16,11 +16,17 @@
                         <x-avatar :user="$user" size="size-16" />
                         <div>
                             <label for="avatar" class="mb-1.5 block text-sm font-medium text-head">Photo</label>
-                            <input id="avatar" type="file" name="avatar" accept="image/*"
+                            <input id="avatar" type="file" name="avatar" accept="image/jpeg,image/png,image/webp"
                                 class="text-sm text-mute file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-soft file:px-3 file:py-1.5 file:text-head">
                             @error('avatar', 'updateProfileInformation')
                                 <p class="mt-1 text-sm text-bad">{{ $message }}</p>
                             @enderror
+                            @if ($user->avatar)
+                                <label class="mt-2 flex items-center gap-2 text-sm text-mute">
+                                    <input type="checkbox" name="remove_avatar" value="1" class="size-4 accent-primary">
+                                    Remove current photo
+                                </label>
+                            @endif
                         </div>
                     </div>
 
@@ -29,6 +35,8 @@
                             required />
                         <x-field label="Email address" name="email" type="email" :value="$user->email"
                             bag="updateProfileInformation" required />
+                        <x-field label="Current password (required to change email)" name="current_password"
+                            type="password" autocomplete="current-password" bag="updateProfileInformation" />
                         <x-field label="Phone" name="phone" :value="$user->phone" bag="updateProfileInformation" />
                         <x-field label="Address" name="address" :value="$user->address" bag="updateProfileInformation" />
                     </div>
