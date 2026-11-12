@@ -44,9 +44,9 @@ class RoleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.regex' => 'The name may only contain lowercase English letters, numbers, hyphens (-), and underscores (_) (e.g., content-editor).',
-            'name.unique' => 'A role with this name already exists.',
-            'permissions.*.in' => 'You cannot grant permissions that you do not possess yourself.',
+            'name.regex' => __('The name may only contain lowercase English letters, numbers, hyphens (-), and underscores (_) (e.g., content-editor).'),
+            'name.unique' => __('A role with this name already exists.'),
+            'permissions.*.in' => __('You cannot grant permissions that you do not possess yourself.'),
         ];
     }
 }

@@ -46,7 +46,7 @@ class RoleController extends Controller
                 ->log("Role created: {$role->name}");
         });
 
-        return redirect()->route('roles.index')->with('success', "Role '{$data['name']}' has been created.");
+        return redirect()->route('roles.index')->with('success', __("Role ':name' has been created.", ['name' => $data['name']]));
     }
 
     public function edit(Role $role)
@@ -96,37 +96,37 @@ class RoleController extends Controller
 
         });
 
-        return redirect()->route('roles.index')->with('success', 'Role has been updated.');
+        return redirect()->route('roles.index')->with('success', __('Role has been updated.'));
     }
 
     public function destroy(Role $role): RedirectResponse
     {
         if ($this->isProtected($role)) {
-            return back()->withErrors(['role' => 'This role cannot be deleted.']);
+            return back()->withErrors(['role' => __('This role cannot be deleted.')]);
         }
 
         return DB::transaction(function () use ($role): RedirectResponse {
             $role = Role::query()->lockForUpdate()->findOrFail($role->id);
             $this->authorizeRole($role);
             if (User::withTrashed()->whereHas('roles', fn ($query) => $query->whereKey($role->id))->exists()) {
-                return back()->withErrors(['role' => 'There are users in this role; change their roles first.']);
+                return back()->withErrors(['role' => __('There are users in this role; change their roles first.')]);
             }
             $name = $role->name;
             $role->delete();
             activity()->causedBy(auth()->user())->log("Role deleted: {$name}");
 
-            return back()->with('success', "Role '{$name}' has been deleted.");
+            return back()->with('success', __("Role ':name' has been deleted.", ['name' => $name]));
         });
 
     }
 
     private function authorizeRole(Role $role): void
     {
-        abort_if($role->name === 'super-admin', 403, 'The super admin role cannot be changed.');
+        abort_if($role->name === 'super-admin', 403, __('The super admin role cannot be changed.'));
         if (auth()->user()->hasRole('super-admin')) {
             return;
         }
-        abort_if($this->isProtected($role), 403, 'Only a super admin can change this role.');
+        abort_if($this->isProtected($role), 403, __('Only a super admin can change this role.'));
         abort_unless($role->permissions->pluck('name')->diff(auth()->user()->getAllPermissions()->pluck('name'))->isEmpty(), 403);
         User::withTrashed()->whereHas('roles', fn ($query) => $query->whereKey($role->id))
             ->with(['roles.permissions', 'permissions'])->each(function (User $user): void {

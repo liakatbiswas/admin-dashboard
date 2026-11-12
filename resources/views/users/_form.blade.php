@@ -8,10 +8,10 @@
 
     @if ($editing && auth()->id() === $user->id)
         <div>
-            <p class="mb-1.5 text-sm font-medium text-head">Role</p>
+            <p class="mb-1.5 text-sm font-medium text-head">{{ __('Role') }}</p>
             <p class="text-mute">
-                {{ $user->roles->first()?->name ?? '—' }}
-                <span class="text-xs">(You cannot change your own role.)</span>
+                {{ $user->roles->first()?->name ?? 'â€”' }}
+                <span class="text-xs">{{ __('(You cannot change your own role.)') }}</span>
             </p>
             <input type="hidden" name="role" value="{{ $user->roles->first()?->name }}">
         </div>
@@ -21,7 +21,5 @@
 </div>
 
 @if (!$editing)
-    <p class="mt-4 rounded-md bg-tint px-4 py-3 text-sm text-primary">
-        An invitation link will be sent to the user's email address. They can use this link to set their own password.
-    </p>
+    <p class="mt-4 rounded-md bg-tint px-4 py-3 text-sm text-primary">{{ __('An invitation link will be sent to the user\'s email address. They can use this link to set their own password.') }} </p>
 @endif

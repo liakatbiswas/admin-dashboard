@@ -2,10 +2,8 @@
     <div class="max-w-4xl space-y-6">
         @can('settings.site.manage')
         <x-card class="p-6">
-            <h2 class="text-[15px] font-medium text-head">Site information</h2>
-            <p class="mb-5 mt-1 text-mute">
-                Update the public site name, description and contact details.
-            </p>
+            <h2 class="text-[15px] font-medium text-head">{{ __('Site information') }}</h2>
+            <p class="mb-5 mt-1 text-mute">{{ __('Update the public site name, description and contact details.') }} </p>
 
             <form method="POST" action="{{ route('settings.site.update') }}"
                 enctype="multipart/form-data" class="space-y-5">
@@ -45,7 +43,7 @@
 
                         <div>
                             <label for="{{ $input }}" class="mb-1.5 block text-sm font-medium text-head">
-                                {{ $label }}
+                                {{ __($label) }}
                             </label>
                             <input id="{{ $input }}" type="file" name="{{ $input }}"
                                 accept="image/png,image/jpeg,image/webp" class="w-full text-sm text-mute">
@@ -56,14 +54,14 @@
 
                             @if ($currentPath)
                                 <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($currentPath) }}"
-                                    alt="{{ $label }} preview" class="mt-3 max-h-20 max-w-48 object-contain">
+                                    alt="{{ __(':label preview', ['label' => __($label)]) }}" class="mt-3 max-h-20 max-w-48 object-contain">
                             @endif
                         </div>
                     @endforeach
                 </div>
 
                 <div class="flex justify-end">
-                    <x-button>Save site settings</x-button>
+                    <x-button>{{ __('Save site settings') }}</x-button>
                 </div>
             </form>
         </x-card>
@@ -71,10 +69,8 @@
 
         @can('admission.manage')
         <x-card class="p-6">
-            <h2 class="text-[15px] font-medium text-head">Admissions</h2>
-            <p class="mb-5 mt-1 text-mute">
-                Control whether new student admissions are open to visitors.
-            </p>
+            <h2 class="text-[15px] font-medium text-head">{{ __('Admissions') }}</h2>
+            <p class="mb-5 mt-1 text-mute">{{ __('Control whether new student admissions are open to visitors.') }} </p>
             @include('settings._admission-toggle', [
                 'admissionOn' => $admissionOn,
             ])

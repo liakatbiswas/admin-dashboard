@@ -52,7 +52,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         if (isset($input['avatar'])) {
             $newAvatar = $input['avatar']->store('avatars', 'public');
             if (! $newAvatar) {
-                throw ValidationException::withMessages(['avatar' => 'The photo could not be uploaded.'])
+                throw ValidationException::withMessages(['avatar' => __('The photo could not be uploaded.')])
                     ->errorBag('updateProfileInformation');
             }
             $user->avatar = $newAvatar;
@@ -76,7 +76,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         try {
             DB::transaction(function () use ($user, $data, $emailChanged, &$oldAvatar): void {
                 $current = User::query()->lockForUpdate()->findOrFail($user->id);
-                abort_unless($current->email === $user->email, 409, 'Your profile changed. Reload the page and try again.');
+                abort_unless($current->email === $user->email, 409, __('Your profile changed. Reload the page and try again.'));
                 $oldAvatar = $current->avatar;
                 $user->forceFill($emailChanged ? $data + ['email_verified_at' => null] : $data)->save();
                 if ($emailChanged) {
@@ -106,7 +106,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 } catch (\Throwable $exception) {
                     report($exception);
                     if (request()->hasSession()) {
-                        request()->session()->flash('warning', 'Your profile was saved, but an email could not be sent. Please retry email verification or contact an administrator.');
+                        request()->session()->flash('warning', __('Your profile was saved, but an email could not be sent. Please retry email verification or contact an administrator.'));
                     }
                 }
             }

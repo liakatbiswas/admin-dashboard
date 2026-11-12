@@ -4,8 +4,8 @@
         <div class="space-y-6 xl:col-span-2">
             {{-- Profile information --}}
             <x-card class="p-6">
-                <h2 class="text-[15px] font-medium text-head">Profile information</h2>
-                <p class="mb-5 mt-1 text-mute">Update your name, contact details and photo.</p>
+                <h2 class="text-[15px] font-medium text-head">{{ __('Profile information') }}</h2>
+                <p class="mb-5 mt-1 text-mute">{{ __('Update your name, contact details and photo.') }}</p>
 
                 <form method="POST" action="{{ route('user-profile-information.update') }}" enctype="multipart/form-data"
                     class="space-y-4">
@@ -15,7 +15,7 @@
                     <div class="flex items-center gap-4">
                         <x-avatar :user="$user" size="size-16" />
                         <div>
-                            <label for="avatar" class="mb-1.5 block text-sm font-medium text-head">Photo</label>
+                            <label for="avatar" class="mb-1.5 block text-sm font-medium text-head">{{ __('Photo') }}</label>
                             <input id="avatar" type="file" name="avatar" accept="image/jpeg,image/png,image/webp"
                                 class="text-sm text-mute file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-soft file:px-3 file:py-1.5 file:text-head">
                             @error('avatar', 'updateProfileInformation')
@@ -23,9 +23,7 @@
                             @enderror
                             @if ($user->avatar)
                                 <label class="mt-2 flex items-center gap-2 text-sm text-mute">
-                                    <input type="checkbox" name="remove_avatar" value="1" class="size-4 accent-primary">
-                                    Remove current photo
-                                </label>
+                                    <input type="checkbox" name="remove_avatar" value="1" class="size-4 accent-primary">{{ __('Remove current photo') }} </label>
                             @endif
                         </div>
                     </div>
@@ -44,15 +42,15 @@
                         bag="updateProfileInformation" rows="4" />
 
                     <div class="flex justify-end">
-                        <x-button>Save changes</x-button>
+                        <x-button>{{ __('Save changes') }}</x-button>
                     </div>
                 </form>
             </x-card>
 
             {{-- Password --}}
             <x-card class="p-6">
-                <h2 class="text-[15px] font-medium text-head">Update password</h2>
-                <p class="mb-5 mt-1 text-mute">Use a long password you do not use anywhere else.</p>
+                <h2 class="text-[15px] font-medium text-head">{{ __('Update password') }}</h2>
+                <p class="mb-5 mt-1 text-mute">{{ __('Use a long password you do not use anywhere else.') }}</p>
 
                 <form method="POST" action="{{ route('user-password.update') }}" class="space-y-4">
                     @csrf
@@ -66,7 +64,7 @@
                             autocomplete="new-password" bag="updatePassword" required />
                     </div>
                     <div class="flex justify-end">
-                        <x-button>Update password</x-button>
+                        <x-button>{{ __('Update password') }}</x-button>
                     </div>
                 </form>
             </x-card>
@@ -74,35 +72,35 @@
 
         {{-- Two-factor authentication --}}
         <x-card class="h-fit p-6">
-            <h2 class="text-[15px] font-medium text-head">Two-factor authentication</h2>
+            <h2 class="text-[15px] font-medium text-head">{{ __('Two-factor authentication') }}</h2>
 
             @if (!$user->two_factor_secret)
-                <p class="mb-5 mt-1 text-mute">Add a second step to your login with an authenticator app.</p>
+                <p class="mb-5 mt-1 text-mute">{{ __('Add a second step to your login with an authenticator app.') }}</p>
                 <form method="POST" action="{{ route('two-factor.enable') }}">
                     @csrf
-                    <x-button>Enable 2FA</x-button>
+                    <x-button>{{ __('Enable 2FA') }}</x-button>
                 </form>
             @elseif (!$user->two_factor_confirmed_at)
-                <p class="mb-4 mt-1 text-mute">Scan this QR code with your app, then enter the code to confirm.</p>
+                <p class="mb-4 mt-1 text-mute">{{ __('Scan this QR code with your app, then enter the code to confirm.') }}</p>
                 <div class="mb-4 w-48 rounded-md bg-white p-2">{!! $user->twoFactorQrCodeSvg() !!}</div>
                 <form method="POST" action="{{ route('two-factor.confirm') }}" class="space-y-3">
                     @csrf
                     <x-field label="Authentication code" name="code" inputmode="numeric" autocomplete="one-time-code"
                         bag="confirmTwoFactorAuthentication" required />
-                    <x-button>Confirm</x-button>
+                    <x-button>{{ __('Confirm') }}</x-button>
                 </form>
             @else
-                <p class="mb-4 mt-1 text-mute">2FA is on. Store these recovery codes somewhere safe.</p>
+                <p class="mb-4 mt-1 text-mute">{{ __('2FA is on. Store these recovery codes somewhere safe.') }}</p>
                 <ul class="mb-5 grid grid-cols-2 gap-2 rounded-md bg-soft p-4 font-mono text-sm text-head">
                     @foreach ($user->recoveryCodes() as $code)
                         <li>{{ $code }}</li>
                     @endforeach
                 </ul>
                 <form method="POST" action="{{ route('two-factor.disable') }}"
-                    data-confirm="Are you sure you want to disable 2FA?">
+                    data-confirm="{{ __('Are you sure you want to disable 2FA?') }}">
                     @csrf
                     @method('DELETE')
-                    <x-button variant="bad">Disable 2FA</x-button>
+                    <x-button variant="bad">{{ __('Disable 2FA') }}</x-button>
                 </form>
             @endif
         </x-card>

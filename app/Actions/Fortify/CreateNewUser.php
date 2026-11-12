@@ -26,7 +26,7 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
 
-        abort_unless(AdmissionOnOff::isOn(), 403, 'Registration is closed.');
+        abort_unless(AdmissionOnOff::isOn(), 403, __('Registration is closed.'));
 
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
@@ -41,7 +41,7 @@ class CreateNewUser implements CreatesNewUsers
         ])->validate();
 
         $user = DB::transaction(function () use ($input): User {
-            abort_unless((bool) AdmissionOnOff::query()->whereKey(1)->lockForUpdate()->value('is_on'), 403, 'Registration is closed.');
+            abort_unless((bool) AdmissionOnOff::query()->whereKey(1)->lockForUpdate()->value('is_on'), 403, __('Registration is closed.'));
             $role = Role::where('name', 'student')->where('guard_name', 'web')->lockForUpdate()->firstOrFail();
             $user = User::create([
                 'name' => $input['name'],

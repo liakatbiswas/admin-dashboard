@@ -38,11 +38,11 @@ class AccountInvitation extends Notification
         $minutes = config('auth.passwords.'.config('fortify.passwords').'.expire');
 
         return (new MailMessage)
-            ->subject(config('app.name').': Your account has been created')
-            ->greeting('Hello '.$notifiable->name.'!')
-            ->line('An account has been created for you. Click the button below to set your password.')
-            ->action('Set Password', $url)
-            ->line("This link will remain valid for {$minutes} minutes.");
+            ->subject(config('app.name').': '.__('Your account has been created'))
+            ->greeting(__('Hello :name!', ['name' => $notifiable->name]))
+            ->line(__('An account has been created for you. Click the button below to set your password.'))
+            ->action(__('Set Password'), $url)
+            ->line(__('This link will remain valid for :minutes minutes.', ['minutes' => $minutes]));
     }
 
     /**

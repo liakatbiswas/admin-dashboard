@@ -9,7 +9,7 @@
         <meta name="description" content="{{ $siteSettings->site_description }}">
     @endif
 
-    <title>{{ $siteSettings->site_title }} | {{ $title }}</title>
+    <title>{{ $siteSettings->site_title }} | {{ __($title) }}</title>
 
     <link rel="icon" href="{{ $siteSettings->favicon_path
         ? \Illuminate\Support\Facades\Storage::disk('public')->url($siteSettings->favicon_path)
@@ -41,21 +41,19 @@
             <x-logo />
         </div>
 
-        <nav class="flex-1 overflow-y-auto px-3 pb-6" aria-label="Main">
-            <p class="px-3 pb-1.5 pt-[18px] text-xs font-medium tracking-[.08em] text-mute lg:[.sm-nav_&]:hidden">Menu
-            </p>
-            <x-nav-link :href="route('dashboard')" icon="home" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
+        <nav class="flex-1 overflow-y-auto px-3 pb-6" aria-label="{{ __('Main') }}">
+            <p class="px-3 pb-1.5 pt-[18px] text-xs font-medium tracking-[.08em] text-mute lg:[.sm-nav_&]:hidden">{{ __('Menu') }} </p>
+            <x-nav-link :href="route('dashboard')" icon="home" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-nav-link>
 
             @canany(['users.view', 'users.create', 'roles.manage', 'activity.view', 'settings.site.manage', 'admission.manage'])
-                <p class="px-3 pb-1.5 pt-[18px] text-xs font-medium tracking-[.08em] text-mute lg:[.sm-nav_&]:hidden">
-                    Administration</p>
+                <p class="px-3 pb-1.5 pt-[18px] text-xs font-medium tracking-[.08em] text-mute lg:[.sm-nav_&]:hidden">{{ __('Administration') }}</p>
             @endcanany
 
             @can('activity.view')
-                <x-nav-link :href="route('activity.index')" icon="clock" :active="request()->routeIs('activity.*')">Activity log</x-nav-link>
+                <x-nav-link :href="route('activity.index')" icon="clock" :active="request()->routeIs('activity.*')">{{ __('Activity log') }}</x-nav-link>
             @endcan
             @canany(['settings.site.manage', 'admission.manage'])
-                <x-nav-link :href="route('settings.index')" icon="gear" :active="request()->routeIs('settings.*')">Settings</x-nav-link>
+                <x-nav-link :href="route('settings.index')" icon="gear" :active="request()->routeIs('settings.*')">{{ __('Settings') }}</x-nav-link>
             @endcan
 
             @canany(['users.view', 'users.create'])
@@ -63,18 +61,18 @@
                     <button type="button" aria-expanded="{{ request()->routeIs('users.*') ? 'true' : 'false' }}" class="flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[14.5px] lg:[.sm-nav_&]:justify-center {{ request()->routeIs('users.*') ? 'bg-tint font-medium text-primary' : 'text-ink hover:bg-soft' }}"
                         data-tg>
                         <x-icon name="users" />
-                        <span class="lg:[.sm-nav_&]:hidden">Users</span>
+                        <span class="lg:[.sm-nav_&]:hidden">{{ __('Users') }}</span>
                         <x-icon name="chev"
                             class="ml-auto size-4 transition-transform group-[.open]:rotate-90 lg:[.sm-nav_&]:hidden" />
                     </button>
                     <div class="hidden pb-1 pl-[42px] pt-0.5 group-[.open]:block lg:[.sm-nav_&]:!hidden">
                         @can('users.view')
                             <a href="{{ route('users.index') }}"
-                                class="block px-2 py-1.5 text-sm text-mute hover:text-primary">All users</a>
+                                class="block px-2 py-1.5 text-sm text-mute hover:text-primary">{{ __('All users') }}</a>
                         @endcan
                         @can('users.create')
                             <a href="{{ route('users.create') }}"
-                                class="block px-2 py-1.5 text-sm text-mute hover:text-primary">Invite user</a>
+                                class="block px-2 py-1.5 text-sm text-mute hover:text-primary">{{ __('Invite user') }}</a>
                         @endcan
                     </div>
                 </div>
@@ -85,15 +83,15 @@
                     <button type="button" aria-expanded="{{ request()->routeIs('roles.*') ? 'true' : 'false' }}" class="flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[14.5px] lg:[.sm-nav_&]:justify-center {{ request()->routeIs('roles.*') ? 'bg-tint font-medium text-primary' : 'text-ink hover:bg-soft' }}"
                         data-tg>
                         <x-icon name="lock" />
-                        <span class="lg:[.sm-nav_&]:hidden">Roles</span>
+                        <span class="lg:[.sm-nav_&]:hidden">{{ __('Roles') }}</span>
                         <x-icon name="chev"
                             class="ml-auto size-4 transition-transform group-[.open]:rotate-90 lg:[.sm-nav_&]:hidden" />
                     </button>
                     <div class="hidden pb-1 pl-[42px] pt-0.5 group-[.open]:block lg:[.sm-nav_&]:!hidden">
                         <a href="{{ route('roles.index') }}"
-                            class="block px-2 py-1.5 text-sm text-mute hover:text-primary">All roles</a>
+                            class="block px-2 py-1.5 text-sm text-mute hover:text-primary">{{ __('All roles') }}</a>
                         <a href="{{ route('roles.create') }}"
-                            class="block px-2 py-1.5 text-sm text-mute hover:text-primary">New role</a>
+                            class="block px-2 py-1.5 text-sm text-mute hover:text-primary">{{ __('New role') }}</a>
                     </div>
                 </div>
             @endcan
@@ -107,20 +105,21 @@
         <header class="sticky top-0 z-20 flex h-[70px] items-center gap-1 border-b border-line bg-card px-4">
             <button id="mt" type="button"
                 class="relative grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-mute hover:bg-soft hover:text-head"
-                aria-label="Toggle menu">
+                aria-label="{{ __('Toggle menu') }}">
                 <x-icon name="menu" />
             </button>
 
             <div class="ml-auto flex items-center gap-0.5 sm:gap-1">
+                <x-language-switcher />
                 <button id="fs" type="button"
                     class="relative grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-mute hover:bg-soft hover:text-head max-sm:hidden"
-                    aria-label="Fullscreen">
+                    aria-label="{{ __('Fullscreen') }}">
                     <x-icon name="expand" />
                 </button>
 
                 <button id="th" type="button"
                     class="relative grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-mute hover:bg-soft hover:text-head"
-                    aria-label="Light/Dark mode">
+                    aria-label="{{ __('Light/Dark mode') }}">
                     <x-icon name="moon" class="dark:hidden" />
                     <x-icon name="sun" class="hidden dark:block" />
                 </button>
@@ -128,7 +127,7 @@
                 {{-- Account dropdown --}}
                 <span data-dw class="group relative inline-block">
                     <button type="button" data-dd class="grid size-10 cursor-pointer place-items-center rounded-full"
-                        aria-label="Account">
+                        aria-label="{{ __('Account') }}">
                         <x-avatar :user="auth()->user()" size="size-9" />
                     </button>
                     <div data-dp
@@ -140,21 +139,18 @@
                         <hr class="my-1.5 border-line">
                         <a href="{{ route('profile.edit') }}"
                             class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-[7px] text-ink hover:bg-soft">
-                            <x-icon name="user" /> My profile
-                        </a>
+                            <x-icon name="user" /> {{ __('My profile') }} </a>
                         @canany(['settings.site.manage', 'admission.manage'])
                             <a href="{{ route('settings.index') }}"
                                 class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-[7px] text-ink hover:bg-soft">
-                                <x-icon name="gear" /> Settings
-                            </a>
+                                <x-icon name="gear" /> {{ __('Settings') }} </a>
                         @endcan
                         <hr class="my-1.5 border-line">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit"
                                 class="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-[7px] text-left text-bad hover:bg-soft">
-                                <x-icon name="logout" /> Log out
-                            </button>
+                                <x-icon name="logout" /> {{ __('Log out') }} </button>
                         </form>
                     </div>
                 </span>
@@ -166,16 +162,16 @@
         <main class="min-w-0 flex-1 p-4 sm:p-6">
 
             <div class="mb-6 flex flex-wrap items-center justify-between gap-2">
-                <h1 class="text-lg font-medium text-head">{{ $title }}</h1>
-                <nav class="flex flex-wrap items-center gap-2 text-mute" aria-label="Breadcrumb">
-                    <a href="{{ route('dashboard') }}" class="hover:text-primary">Dashboard</a>
+                <h1 class="text-lg font-medium text-head">{{ __($title) }}</h1>
+                <nav class="flex flex-wrap items-center gap-2 text-mute" aria-label="{{ __('Breadcrumb') }}">
+                    <a href="{{ route('dashboard') }}" class="hover:text-primary">{{ __('Dashboard') }}</a>
 
                     @foreach ($crumbs as $label => $url)
                         <x-icon name="chev" class="size-4" />
                         @if ($url && !$loop->last)
-                            <a href="{{ $url }}" class="hover:text-primary">{{ $label }}</a>
+                            <a href="{{ $url }}" class="hover:text-primary">{{ __($label) }}</a>
                         @else
-                            <span class="text-head">{{ $label }}</span>
+                            <span class="text-head">{{ __($label) }}</span>
                         @endif
                     @endforeach
                 </nav>
@@ -192,12 +188,12 @@
         </main>
 
         <footer class="border-t border-line bg-card px-6 py-5 text-center text-mute">
-            © {{ date('Y') }} {{ $siteSettings->site_title }}
+            Â© {{ date('Y') }} {{ $siteSettings->site_title }}
         </footer>
     </div>
 
     {{-- Back to top --}}
-    <button id="up" type="button" aria-label="Back to top"
+    <button id="up" type="button" aria-label="{{ __('Back to top') }}"
         class="fixed bottom-5 right-14 z-[25] grid size-10 cursor-pointer place-items-center rounded-full bg-primary text-white opacity-0 pointer-events-none transition-opacity">
         <x-icon name="up" />
     </button>

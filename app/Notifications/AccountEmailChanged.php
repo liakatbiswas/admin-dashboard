@@ -24,10 +24,10 @@ class AccountEmailChanged extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(config('app.name').': your email address changed')
-            ->greeting('Hello '.$this->name.'!')
-            ->line("The email address on your account changed from {$this->oldEmail} to {$this->newEmail}.")
-            ->line('If you did not make this change, contact an administrator immediately.');
+            ->subject(config('app.name').': '.__('your email address changed'))
+            ->greeting(__('Hello :name!', ['name' => $this->name]))
+            ->line(__('The email address on your account changed from :old to :new.', ['old' => $this->oldEmail, 'new' => $this->newEmail]))
+            ->line(__('If you did not make this change, contact an administrator immediately.'));
     }
 
     public function toArray(object $notifiable): array

@@ -50,7 +50,7 @@ class SettingController extends Controller
                     }
 
                     return back()
-                        ->withErrors([$input => 'The file could not be uploaded.'])
+                        ->withErrors([$input => __('The file could not be uploaded.')])
                         ->withInput();
                 }
 
@@ -89,7 +89,7 @@ class SettingController extends Controller
             }
         }
 
-        return back()->with('success', 'Site settings have been updated.');
+        return back()->with('success', __('Site settings have been updated.'));
     }
 
     public function toggleAdmission(Request $request): RedirectResponse
@@ -102,6 +102,6 @@ class SettingController extends Controller
                 ->log($enable ? 'Admissions enabled' : 'Admissions disabled');
         });
 
-        return back()->with('success', $enable ? 'Admissions have been enabled.' : 'Admissions have been disabled.');
+        return back()->with('success', $enable ? __('Admissions have been enabled.') : __('Admissions have been disabled.'));
     }
 }

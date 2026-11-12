@@ -22,7 +22,7 @@ class EnsureUserIsActive
             && $request->session()->get('auth.version') !== (int) $user->auth_version;
 
         if ($user && (! $user->is_active || $staleSession)) {
-            $message = $user->is_active ? 'Your session has expired. Please sign in again.' : 'Your account has been deactivated.';
+            $message = $user->is_active ? __('Your session has expired. Please sign in again.') : __('Your account has been deactivated.');
             if ($request->hasSession()) {
                 if (Auth::guard('web')->id() === $user->getAuthIdentifier()) {
                     Auth::guard('web')->logout();

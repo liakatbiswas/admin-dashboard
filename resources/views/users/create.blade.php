@@ -6,8 +6,8 @@
                 @include('users._form', ['roles' => $roles])
                 <div class="flex justify-end gap-2">
                     <a href="{{ route('users.index') }}"
-                        class="inline-flex items-center rounded-md bg-soft px-4 py-2 text-sm font-medium text-head hover:bg-line">Cancel</a>
-                    <x-button>Send invitation</x-button>
+                        class="inline-flex items-center rounded-md bg-soft px-4 py-2 text-sm font-medium text-head hover:bg-line">{{ __('Cancel') }}</a>
+                    <x-button>{{ __('Send invitation') }}</x-button>
                 </div>
             </form>
         </x-card>

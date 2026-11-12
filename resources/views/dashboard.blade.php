@@ -6,7 +6,7 @@
             ['label' => 'Roles', 'value' => $totalRoles, 'icon' => 'lock', 'tone' => 's'],
             [
                 'label' => 'Registration',
-                'value' => $admissionOn ? 'Open' : 'Closed',
+                'value' => $admissionOn ? __('Open') : __('Closed'),
                 'icon' => 'gear',
                 'tone' => $admissionOn ? 'g' : 'y',
             ],
@@ -26,18 +26,15 @@
                     <x-icon :name="$stat['icon']" class="size-6" />
                 </span>
                 <div>
-                    <p class="text-sm text-mute">{{ $stat['label'] }}</p>
-                    <p class="text-2xl font-medium text-head">{{ $stat['value'] }}</p>
+                    <p class="text-sm text-mute">{{ __($stat['label']) }}</p>
+                    <p class="text-2xl font-medium text-head">{{ is_string($stat['value']) ? __($stat['value']) : $stat['value'] }}</p>
                 </div>
             </x-card>
         @endforeach
     </div>
 
     <x-card class="mt-6 p-6">
-        <h2 class="text-[15px] font-medium text-head">Welcome, {{ auth()->user()->name }}</h2>
-        <p class="mt-1 text-mute">Use the menu on the left to manage users, roles and settings. Your own profile is
-            under
-            My
-            profile.</p>
+        <h2 class="text-[15px] font-medium text-head">{{ __('Welcome, :name', ['name' => auth()->user()->name]) }}</h2>
+        <p class="mt-1 text-mute">{{ __('Use the menu on the left to manage users, roles and settings. Your own profile is under My profile.') }}</p>
     </x-card>
 </x-app-layout>

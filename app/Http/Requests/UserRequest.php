@@ -42,7 +42,7 @@ class UserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.unique' => 'This email has been used before (can also be a deleted user,  see the Deleted filter).',
+            'email.unique' => __('This email has been used before (can also be a deleted user,  see the Deleted filter).'),
         ];
     }
 }

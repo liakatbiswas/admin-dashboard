@@ -9,7 +9,7 @@
     $current = old($name, $value);
 @endphp
 <div>
-    <label for="{{ $id }}" class="mb-1.5 block text-sm font-medium text-head">{{ $label }}</label>
+    <label for="{{ $id }}" class="mb-1.5 block text-sm font-medium text-head">{{ __($label) }}</label>
 
     @if ($type === 'textarea')
         <textarea id="{{ $id }}" name="{{ $name }}" rows="{{ $rows }}" class="{{ $inputClass }}"
@@ -18,7 +18,7 @@
         <select id="{{ $id }}" name="{{ $name }}" class="{{ $inputClass }}"
             {{ $attributes->except('id') }}>
             @foreach ($options as $optionValue => $optionLabel)
-                <option value="{{ $optionValue }}" @selected((string) $current === (string) $optionValue)>{{ $optionLabel }}</option>
+                <option value="{{ $optionValue }}" @selected((string) $current === (string) $optionValue)>{{ __($optionLabel) }}</option>
             @endforeach
         </select>
     @else

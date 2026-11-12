@@ -89,8 +89,8 @@ class UserController extends Controller
         return redirect()->route('users.index')->with(
             $sent ? 'success' : 'warning',
             $sent
-                ? "An invitation has been sent to {$user->email}."
-                : 'The account was created, but the invitation could not be sent. You can resend it from the user list.'
+                ? __('An invitation has been sent to :email.', ['email' => $user->email])
+                : __('The account was created, but the invitation could not be sent. You can resend it from the user list.')
         );
     }
 
@@ -146,8 +146,8 @@ class UserController extends Controller
         return redirect()->route('users.index')->with(
             $notificationSent ? 'success' : 'warning',
             $notificationSent
-                ? 'User has been updated.'
-                : 'User has been updated, but the email could not be sent. Please retry the invitation or verification email.'
+                ? __('User has been updated.')
+                : __('User has been updated, but the email could not be sent. Please retry the invitation or verification email.')
         );
     }
 
@@ -156,7 +156,7 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
 
         if ($user->is(auth()->user())) {
-            return back()->withErrors(['user' => 'You cannot deactivate your account.']);
+            return back()->withErrors(['user' => __('You cannot deactivate your account.')]);
         }
 
         // is_active is in the activity log options, so this update is logged automatically
@@ -166,7 +166,7 @@ class UserController extends Controller
             $this->revokeAccess($user);
         }
 
-        return back()->with('success', $user->is_active ? 'User has been activated.' : 'User has been deactivated.');
+        return back()->with('success', $user->is_active ? __('User has been activated.') : __('User has been deactivated.'));
     }
 
     public function destroy(User $user): RedirectResponse
@@ -174,13 +174,13 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
 
         if ($user->is(auth()->user())) {
-            return back()->withErrors(['user' => 'You cannot delete your account.']);
+            return back()->withErrors(['user' => __('You cannot delete your account.')]);
         }
 
         $this->revokeAccess($user); // must run before delete()
         $user->delete();            // the "deleted" event is logged automatically
 
-        return back()->with('success', 'User has been deleted (can be restored).');
+        return back()->with('success', __('User has been deleted (can be restored).'));
     }
 
     public function restore(User $user): RedirectResponse
@@ -194,7 +194,7 @@ class UserController extends Controller
             ->performedOn($user)
             ->log("User restored: {$user->email}");
 
-        return back()->with('success', 'The user has been brought back.');
+        return back()->with('success', __('The user has been brought back.'));
     }
 
     public function forceDelete(User $user): RedirectResponse
@@ -202,7 +202,7 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
 
         if (! $user->trashed()) {
-            return back()->withErrors(['user' => 'Only deleted users can be permanently removed.']);
+            return back()->withErrors(['user' => __('Only deleted users can be permanently removed.')]);
         }
 
         $avatar = $user->avatar;
@@ -218,7 +218,7 @@ class UserController extends Controller
             Storage::disk('public')->delete($avatar);
         }
 
-        return back()->with('success', 'The user has been permanently deleted.');
+        return back()->with('success', __('The user has been permanently deleted.'));
     }
 
     public function invite(User $user): RedirectResponse
@@ -226,11 +226,11 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
 
         if (is_null($user->invited_at)) {
-            return back()->withErrors(['user' => 'This user has already set a password.']);
+            return back()->withErrors(['user' => __('This user has already set a password.')]);
         }
 
         if (! $this->sendInviteSafely($user)) {
-            return back()->with('warning', 'The invitation could not be sent. Please try again later.');
+            return back()->with('warning', __('The invitation could not be sent. Please try again later.'));
         }
 
         activity()
@@ -238,7 +238,7 @@ class UserController extends Controller
             ->performedOn($user)
             ->log("Invitation resent: {$user->email}");
 
-        return back()->with('success', 'The invitation has been sent again.');
+        return back()->with('success', __('The invitation has been sent again.'));
     }
 
     private function sendInvite(User $user): void

@@ -13,7 +13,7 @@
         ? \Illuminate\Support\Facades\Storage::disk('public')->url($siteSettings->favicon_path)
         : asset('assets/images/logo/favicon.ico') }}">
 
-    <title>{{ $siteSettings->site_title }} | {{ $title }}</title>
+    <title>{{ $siteSettings->site_title }} | {{ __($title) }}</title>
 
     <script>
         (function() {
@@ -30,7 +30,7 @@
 <body class="bg-page font-sans text-sm leading-normal text-ink antialiased">
     <button id="th" type="button"
         class="fixed right-4 top-4 grid size-10 cursor-pointer place-items-center rounded-full bg-card text-mute hover:text-head"
-        aria-label="Toggle theme">
+        aria-label="{{ __('Toggle theme') }}">
         <x-icon name="moon" class="dark:hidden" />
         <x-icon name="sun" class="hidden dark:block" />
     </button>
@@ -42,6 +42,7 @@
             </div>
 
             {{ $slot }}
+            <x-language-switcher class="mt-6 justify-center" />
 
         </div>
     </main>
