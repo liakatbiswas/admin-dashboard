@@ -18,6 +18,7 @@ return new class extends Migration
             $table->json('attribute_changes')->nullable();
             $table->json('properties')->nullable();
             $table->timestamps();
+            $table->index('created_at');
         });
     }
 

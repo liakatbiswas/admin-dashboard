@@ -23,6 +23,7 @@ return new class extends Migration
             $table->timestamp('invited_at')->nullable()->index();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->unsignedInteger('auth_version')->default(0);
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

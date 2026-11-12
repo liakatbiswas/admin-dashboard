@@ -10,7 +10,7 @@
         <div>
             <p class="mb-1.5 text-sm font-medium text-head">{{ __('Role') }}</p>
             <p class="text-mute">
-                {{ $user->roles->first()?->name ?? 'â€”' }}
+                {{ $user->roles->first()?->name ?? '—' }}
                 <span class="text-xs">{{ __('(You cannot change your own role.)') }}</span>
             </p>
             <input type="hidden" name="role" value="{{ $user->roles->first()?->name }}">

@@ -27,6 +27,7 @@
 <a href="{{ route('settings.registration') }}" @if(request()->routeIs('settings.registration')) aria-current="page" @endif class="block px-2 py-1.5 text-sm {{ request()->routeIs('settings.registration') ? 'font-medium text-primary' : 'text-mute hover:text-primary' }}">{{ __('Registration on/off') }}</a>
 @endcan
 <a href="{{ route('settings.password') }}" @if(request()->routeIs('settings.password')) aria-current="page" @endif class="block px-2 py-1.5 text-sm {{ request()->routeIs('settings.password') ? 'font-medium text-primary' : 'text-mute hover:text-primary' }}">{{ __('Change password') }}</a>
+<a href="{{ route('settings.two-factor') }}" @if(request()->routeIs('settings.two-factor')) aria-current="page" @endif class="block px-2 py-1.5 text-sm {{ request()->routeIs('settings.two-factor') ? 'font-medium text-primary' : 'text-mute hover:text-primary' }}">{{ __('Two-factor authentication') }}</a>
 @can('settings.site.manage')
 <a href="{{ route('settings.site') }}" @if(request()->routeIs('settings.site')) aria-current="page" @endif class="block px-2 py-1.5 text-sm {{ request()->routeIs('settings.site') ? 'font-medium text-primary' : 'text-mute hover:text-primary' }}">{{ __('Site information') }}</a>
 @endcan

@@ -28,6 +28,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/admin/settings/site', [SettingController::class, 'site'])
         ->middleware('can:settings.site.manage')->name('settings.site');
     Route::view('/admin/settings/password', 'settings.password')->name('settings.password');
+    Route::get('/admin/settings/two-factor', [ProfileController::class, 'twoFactor'])
+        ->middleware('password.confirm')->name('settings.two-factor');
 
     Route::put('/admin/settings/site', [SettingController::class, 'updateSite'])
         ->middleware('can:settings.site.manage')

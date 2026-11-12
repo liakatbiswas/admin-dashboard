@@ -66,7 +66,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="text-mute">{{ $user->phone ?: 'â€”' }}</td>
+                        <td class="text-mute">{{ $user->phone ?: '—' }}</td>
                         <td>
                             @foreach ($user->roles as $role)
                                 <span

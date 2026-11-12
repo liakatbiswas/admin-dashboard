@@ -39,7 +39,7 @@
                         <td class="whitespace-normal text-head">{{ $activity->description }}</td>
                         <td>{{ $activity->causer?->name ?? __('System') }}</td>
                         <td class="text-mute">
-                            {{ $activity->subject_type ? class_basename($activity->subject_type) . ' #' . $activity->subject_id : 'â€”' }}
+                            {{ $activity->subject_type ? class_basename($activity->subject_type) . ' #' . $activity->subject_id : '—' }}
                         </td>
                     </tr>
                 @empty

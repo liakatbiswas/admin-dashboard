@@ -44,4 +44,34 @@ class SettingsNavigationTest extends TestCase
         $this->get(route('settings.site'))->assertRedirect(route('login'));
         $this->get(route('settings.password'))->assertRedirect(route('login'));
     }
+
+    public function test_profile_has_only_the_profile_form(): void
+    {
+        $this->actingAs($this->superAdmin())
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->get(route('profile.edit'))->assertOk()
+            ->assertSee('name="bio"', false)
+            ->assertDontSee('action="'.route('user-password.update').'"', false)
+            ->assertDontSee('action="'.route('two-factor.enable').'"', false);
+    }
+
+    public function test_two_factor_page_requires_password_confirmation(): void
+    {
+        $this->actingAs($this->superAdmin())->get(route('settings.two-factor'))
+            ->assertRedirect(route('password.confirm'));
+    }
+
+    public function test_confirmed_user_can_open_two_factor_settings_from_sidebar(): void
+    {
+        $this->actingAs($this->superAdmin())
+            ->withSession(['auth.password_confirmed_at' => time()]);
+
+        $this->get(route('dashboard'))->assertOk()->assertSee(route('settings.two-factor'), false);
+        $this->get(route('settings.two-factor'))->assertOk()->assertSee('action="'.route('two-factor.enable').'"', false);
+    }
+
+    public function test_guest_cannot_open_two_factor_settings(): void
+    {
+        $this->get(route('settings.two-factor'))->assertRedirect(route('login'));
+    }
 }
