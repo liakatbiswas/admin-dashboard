@@ -2,7 +2,7 @@
 
 namespace App\Actions\Fortify;
 
-use App\Models\Setting;
+use App\Models\AdmissionOnOff;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -24,7 +24,7 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
 
-        abort_unless(Setting::registrationEnabled(), 403, 'Registration is closed.');
+        abort_unless(AdmissionOnOff::isOn(), 403, 'Registration is closed.');
 
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],

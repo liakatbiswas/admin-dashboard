@@ -68,12 +68,12 @@
         </x-card>
 
         <x-card class="p-6">
-            <h2 class="text-[15px] font-medium text-head">Public registration</h2>
+            <h2 class="text-[15px] font-medium text-head">Admissions</h2>
             <p class="mb-5 mt-1 text-mute">
-                When enabled, new visitors can register with the student role.
+                Control whether new student admissions are open to visitors.
             </p>
-            @include('settings._registration-toggle', [
-                'registrationEnabled' => $registrationEnabled,
+            @include('settings._admission-toggle', [
+                'admissionOn' => $admissionOn,
             ])
         </x-card>
     </div>

@@ -2,7 +2,7 @@
     <h4 class="text-center text-xl font-medium text-head">Create an account</h4>
     <p class="mb-6 mt-1 text-center text-mute">New accounts start with the student role.</p>
 
-    @if (!\App\Models\Setting::registrationEnabled())
+    @if (!\App\Models\AdmissionOnOff::isOn())
         <div class="rounded-md bg-warn/15 px-4 py-3 text-center text-warn">
             <p class="font-medium">Registration is currently closed</p>
             <p class="mt-1 text-sm">Please contact the administrator to get an account.</p>

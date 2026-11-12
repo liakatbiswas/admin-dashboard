@@ -6,9 +6,9 @@
             ['label' => 'Roles', 'value' => $totalRoles, 'icon' => 'lock', 'tone' => 's'],
             [
                 'label' => 'Registration',
-                'value' => $registrationEnabled ? 'Open' : 'Closed',
+                'value' => $admissionOn ? 'Open' : 'Closed',
                 'icon' => 'gear',
-                'tone' => $registrationEnabled ? 'g' : 'y',
+                'tone' => $admissionOn ? 'g' : 'y',
             ],
         ];
         $tones = [

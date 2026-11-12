@@ -1,5 +1,5 @@
 <x-guest-layout title="Registration Status">
-    @if (!\App\Models\Setting::registrationEnabled())
+    @if (!\App\Models\AdmissionOnOff::isOn())
         <div class="text-center">
             <span class="mx-auto grid size-14 place-items-center rounded-full bg-warn/15 text-warn">
                 {{-- <x-icon name="lock" class="size-7" /> --}}

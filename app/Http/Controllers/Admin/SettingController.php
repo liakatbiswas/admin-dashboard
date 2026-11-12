@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SiteSettingRequest;
-use App\Models\Setting;
+use App\Models\AdmissionOnOff;
 use App\Models\SiteSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +15,7 @@ class SettingController extends Controller
     public function index()
     {
         return view('settings.index', [
-            'registrationEnabled' => Setting::registrationEnabled(),
+            'admissionOn' => AdmissionOnOff::isOn(),
             'siteSetting' => SiteSetting::current(),
         ]);
     }
@@ -84,16 +84,16 @@ class SettingController extends Controller
         return back()->with('success', 'Site settings have been updated.');
     }
 
-    public function toggleRegistration(): RedirectResponse
+    public function toggleAdmission(): RedirectResponse
     {
-        $enable = ! Setting::registrationEnabled();
+        $enable = ! AdmissionOnOff::isOn();
 
-        Setting::set('registration_enabled', $enable ? '1' : '0');
+        AdmissionOnOff::set($enable);
 
         activity()
             ->causedBy(auth()->user())
-            ->log($enable ? 'Registration enabled' : 'Registration disabled');
+            ->log($enable ? 'Admissions enabled' : 'Admissions disabled');
 
-        return back()->with('success', $enable ? 'Registration has been enabled.' : 'Registration has been disabled.');
+        return back()->with('success', $enable ? 'Admissions have been enabled.' : 'Admissions have been disabled.');
     }
 }

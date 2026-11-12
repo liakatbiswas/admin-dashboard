@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Setting;
+use App\Models\AdmissionOnOff;
 use App\Models\User;
 use Tests\TestCase;
 
@@ -29,7 +29,7 @@ class RegistrationTest extends TestCase
 
     public function test_closed_registration_shows_notice_and_blocks_post(): void
     {
-        Setting::set('registration_enabled', '0');
+        AdmissionOnOff::set(false);
 
         $this->get('/register')->assertOk()->assertSee('Registration is currently closed');
         $this->post('/register', $this->payload)->assertForbidden();
@@ -39,18 +39,18 @@ class RegistrationTest extends TestCase
     public function test_super_admin_can_toggle_registration(): void
     {
         $this->actingAs($this->superAdmin())
-            ->post(route('settings.registration'))->assertRedirect();
-        $this->assertFalse(Setting::registrationEnabled());
+            ->post(route('settings.admission.toggle'))->assertRedirect();
+        $this->assertFalse(AdmissionOnOff::isOn());
 
-        $this->post(route('settings.registration'));
-        $this->assertTrue(Setting::registrationEnabled());
+        $this->post(route('settings.admission.toggle'));
+        $this->assertTrue(AdmissionOnOff::isOn());
     }
 
     public function test_student_cannot_toggle_registration(): void
     {
         $student = User::factory()->create()->assignRole('student');
 
-        $this->actingAs($student)->post(route('settings.registration'))->assertForbidden();
-        $this->assertTrue(Setting::registrationEnabled());
+        $this->actingAs($student)->post(route('settings.admission.toggle'))->assertForbidden();
+        $this->assertTrue(AdmissionOnOff::isOn());
     }
 }

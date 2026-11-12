@@ -6,7 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
-use App\Models\Setting;
+use App\Models\AdmissionOnOff;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -25,7 +25,7 @@ class FortifyServiceProvider extends ServiceProvider
     public function register(): void
     {
         Fortify::loginView(fn () => view('auth.login'));
-        Fortify::registerView(fn () => Setting::registrationEnabled()
+        Fortify::registerView(fn () => AdmissionOnOff::isOn()
             ? view('auth.register')
             : view('auth.registration-closed'));
         Fortify::requestPasswordResetLinkView(fn () => view('auth.forgot-password'));

@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Setting;
+use App\Models\AdmissionOnOff;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -37,7 +37,7 @@ class RolesAndSuperAdminSeeder extends Seeder
         );
         $user->assignRole($super);
 
-        Setting::firstOrCreate(['key' => 'registration_enabled'], ['value' => '1']);
+        AdmissionOnOff::firstOrCreate(['id' => 1], ['is_on' => true]);
 
     }
 }
