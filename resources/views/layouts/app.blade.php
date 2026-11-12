@@ -5,11 +5,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @if ($siteSettings->site_description)
+        <meta name="description" content="{{ $siteSettings->site_description }}">
+    @endif
 
-    <title>NGHS | {{ $title }}</title>
+    <title>{{ $siteSettings->site_title }} | {{ $title }}</title>
 
-    <!-- App favicon -->
-    <link rel="shortcut icon" href="{{ asset('assets/images/logo/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ $siteSettings->favicon_path
+        ? \Illuminate\Support\Facades\Storage::disk('public')->url($siteSettings->favicon_path)
+        : asset('assets/images/logo/favicon.ico') }}">
 
 
     <script>
@@ -188,7 +192,7 @@
         </main>
 
         <footer class="border-t border-line bg-card px-6 py-5 text-center text-mute">
-            © {{ date('Y') }} {{ config('app.name') }}
+            © {{ date('Y') }} {{ $siteSettings->site_title }}
         </footer>
     </div>
 

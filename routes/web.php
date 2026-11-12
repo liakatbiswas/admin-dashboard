@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('can:settings.manage')->prefix('admin')->group(function () {
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::put('/settings/site', [SettingController::class, 'updateSite'])->name('settings.site.update');
         Route::post('/settings/registration', [SettingController::class, 'toggleRegistration'])
             ->name('settings.registration');
     });

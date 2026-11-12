@@ -5,7 +5,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ $siteSettings->site_title }}</title>
+    @if ($siteSettings->site_description)
+        <meta name="description" content="{{ $siteSettings->site_description }}">
+    @elseif ($siteSettings->site_tagline)
+        <meta name="description" content="{{ $siteSettings->site_tagline }}">
+    @endif
+    <link rel="icon" href="{{ $siteSettings->favicon_path
+        ? \Illuminate\Support\Facades\Storage::disk('public')->url($siteSettings->favicon_path)
+        : asset('assets/images/logo/favicon.ico') }}">
 
     @fonts
 

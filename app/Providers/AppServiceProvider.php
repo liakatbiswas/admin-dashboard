@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Events\RecoveryCodesGenerated;
 use Laravel\Fortify\Events\TwoFactorAuthenticationConfirmed;
@@ -32,6 +34,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        View::composer('*', function ($view) {
+            $view->with('siteSettings', SiteSetting::current());
+        });
+
         Gate::before(function ($user, $ability, $arguments = []) {
             $target = $arguments[0] ?? null;
 
@@ -65,14 +71,10 @@ class AppServiceProvider extends ServiceProvider
             activity('security')->causedBy($event->user)->log('Password reset');
         });
 
-        Event::listen(TwoFactorAuthenticationEnabled::class, fn ($event) =>
-            activity('security')->causedBy($event->user)->log('Two-factor authentication enabled'));
-        Event::listen(TwoFactorAuthenticationConfirmed::class, fn ($event) =>
-            activity('security')->causedBy($event->user)->log('Two-factor authentication confirmed'));
-        Event::listen(TwoFactorAuthenticationDisabled::class, fn ($event) =>
-            activity('security')->causedBy($event->user)->log('Two-factor authentication disabled'));
-        Event::listen(RecoveryCodesGenerated::class, fn ($event) =>
-            activity('security')->causedBy($event->user)->log('Two-factor recovery codes regenerated'));
+        Event::listen(TwoFactorAuthenticationEnabled::class, fn ($event) => activity('security')->causedBy($event->user)->log('Two-factor authentication enabled'));
+        Event::listen(TwoFactorAuthenticationConfirmed::class, fn ($event) => activity('security')->causedBy($event->user)->log('Two-factor authentication confirmed'));
+        Event::listen(TwoFactorAuthenticationDisabled::class, fn ($event) => activity('security')->causedBy($event->user)->log('Two-factor authentication disabled'));
+        Event::listen(RecoveryCodesGenerated::class, fn ($event) => activity('security')->causedBy($event->user)->log('Two-factor recovery codes regenerated'));
 
         RateLimiter::for('user-creations', function (Request $request) {
             // Limit each administrator to ten user creations per minute.

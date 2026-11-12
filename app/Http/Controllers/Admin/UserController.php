@@ -85,7 +85,7 @@ class UserController extends Controller
             $sent ? 'success' : 'warning',
             $sent
                 ? "An invitation has been sent to {$user->email}."
-                : "The account was created, but the invitation could not be sent. You can resend it from the user list."
+                : 'The account was created, but the invitation could not be sent. You can resend it from the user list.'
         );
     }
 
