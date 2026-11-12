@@ -114,6 +114,11 @@ class UserController extends Controller
         $user->save();
 
         if ($user->wasChanged('email')) {
+            // Sign the user out everywhere (skip when editing yourself, or you would log yourself out)
+            if ($user->isNot(auth()->user())) {
+                $this->revokeAccess($user);
+            }
+
             if ($user->invited_at) {
                 // Invite not accepted yet: the old token belongs to the old address, so send a fresh one
                 $this->sendInvite($user);
