@@ -27,12 +27,7 @@ class SiteSetting extends Model
 
     public static function current(): self
     {
-        $attributes = Cache::rememberForever(
-            self::CACHE_KEY,
-            fn () => static::query()->findOrFail(1)->getAttributes()
-        );
-
-        return (new static)->newFromBuilder($attributes);
+        return static::query()->findOrFail(1);
     }
 
     public static function clearCache(): void

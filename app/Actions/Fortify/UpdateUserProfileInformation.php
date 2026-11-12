@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Models\User;
 use App\Notifications\AccountEmailChanged;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -46,9 +47,15 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         ])->validateWithBag('updateProfileInformation');
 
         $oldAvatar = $user->avatar;
+        $newAvatar = null;
 
         if (isset($input['avatar'])) {
-            $user->avatar = $input['avatar']->store('avatars', 'public');
+            $newAvatar = $input['avatar']->store('avatars', 'public');
+            if (! $newAvatar) {
+                throw ValidationException::withMessages(['avatar' => 'The photo could not be uploaded.'])
+                    ->errorBag('updateProfileInformation');
+            }
+            $user->avatar = $newAvatar;
         } elseif (filter_var($input['remove_avatar'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $user->avatar = null;
         }
@@ -65,26 +72,44 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $data['avatar'] = $user->avatar;
         }
 
-        if ($emailChanged) {
-            $oldEmail = $user->email;
-            $user->forceFill($data + ['email_verified_at' => null])->save();
-
-            $user->tokens()->delete();
-            Auth::guard('web')->logoutOtherDevices($input['current_password']);
-            $user->sendEmailVerificationNotification();
-
-            try {
-                Notification::route('mail', $oldEmail)
-                    ->notify(new AccountEmailChanged($user->name, $oldEmail, $user->email));
-            } catch (\Throwable $exception) {
-                report($exception);
+        $oldEmail = $user->email;
+        try {
+            DB::transaction(function () use ($user, $data, $emailChanged, &$oldAvatar): void {
+                $current = User::query()->lockForUpdate()->findOrFail($user->id);
+                abort_unless($current->email === $user->email, 409, 'Your profile changed. Reload the page and try again.');
+                $oldAvatar = $current->avatar;
+                $user->forceFill($emailChanged ? $data + ['email_verified_at' => null] : $data)->save();
+                if ($emailChanged) {
+                    $user->tokens()->delete();
+                }
+            });
+        } catch (\Throwable $exception) {
+            if ($newAvatar) {
+                Storage::disk('public')->delete($newAvatar);
             }
-        } else {
-            $user->forceFill($data)->save();
+            throw $exception;
         }
 
-        if ($oldAvatar && $oldAvatar !== $user->avatar) {
+        if (array_key_exists('avatar', $data) && $oldAvatar && $oldAvatar !== $user->avatar) {
             Storage::disk('public')->delete($oldAvatar);
+        }
+
+        if ($emailChanged) {
+            Auth::guard('web')->logoutOtherDevices($input['current_password']);
+            foreach ([
+                fn () => $user->sendEmailVerificationNotification(),
+                fn () => Notification::route('mail', $oldEmail)
+                    ->notify(new AccountEmailChanged($user->name, $oldEmail, $user->email)),
+            ] as $notify) {
+                try {
+                    $notify();
+                } catch (\Throwable $exception) {
+                    report($exception);
+                    if (request()->hasSession()) {
+                        request()->session()->flash('warning', 'Your profile was saved, but an email could not be sent. Please retry email verification or contact an administrator.');
+                    }
+                }
+            }
         }
     }
 }

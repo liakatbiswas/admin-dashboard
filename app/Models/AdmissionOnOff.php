@@ -15,10 +15,7 @@ class AdmissionOnOff extends Model
 
     public static function isOn(): bool
     {
-        return Cache::rememberForever(
-            'admission_on_off.is_on',
-            fn () => (bool) static::query()->whereKey(1)->value('is_on')
-        );
+        return (bool) static::query()->whereKey(1)->value('is_on');
     }
 
     public static function set(bool $enabled): void

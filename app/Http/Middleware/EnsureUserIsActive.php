@@ -17,8 +17,12 @@ class EnsureUserIsActive
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
+        $staleSession = $user && $request->hasSession()
+            && $request->session()->has(Auth::guard('web')->getName())
+            && $request->session()->get('auth.version') !== (int) $user->auth_version;
 
-        if ($user && ! $user->is_active) {
+        if ($user && (! $user->is_active || $staleSession)) {
+            $message = $user->is_active ? 'Your session has expired. Please sign in again.' : 'Your account has been deactivated.';
             if ($request->hasSession()) {
                 if (Auth::guard('web')->id() === $user->getAuthIdentifier()) {
                     Auth::guard('web')->logout();
@@ -28,20 +32,20 @@ class EnsureUserIsActive
                 $request->session()->regenerateToken();
             }
 
-            $currentToken = $user->currentAccessToken();
+            $currentToken = $staleSession ? null : $user->currentAccessToken();
             if ($currentToken && method_exists($currentToken, 'delete')) {
                 $currentToken->delete();
             }
 
             if ($request->is('api/*') || $request->expectsJson()) {
                 return response()->json(
-                    ['message' => 'Your account has been deactivated.'],
+                    ['message' => $message],
                     401
                 );
             }
 
             return redirect()->route('login')
-                ->withErrors(['email' => 'Your account has been deactivated.']);
+                ->withErrors(['email' => $message]);
         }
 
         return $next($request);

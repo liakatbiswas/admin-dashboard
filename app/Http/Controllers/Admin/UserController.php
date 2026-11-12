@@ -13,11 +13,13 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate(['q' => ['nullable', 'string', 'max:255'], 'status' => ['nullable', 'in:active,inactive,invited,trashed']]);
         $users = User::query()
             ->with(['roles.permissions', 'permissions'])
             ->when($request->status === 'trashed', fn ($q) => $q->onlyTrashed())
@@ -31,6 +33,7 @@ class UserController extends Controller
                     ->orWhere('phone', 'like', $term));
             })
             ->latest()
+            ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
@@ -50,6 +53,8 @@ class UserController extends Controller
          * 'set-password' link itself serves as proof of ownership.
          */
         $user = DB::transaction(function () use ($data) {
+            $role = Role::where('name', $data['role'])->where('guard_name', 'web')->lockForUpdate()->firstOrFail();
+            abort_unless(auth()->user()->assignableRoles()->contains($role->name), 403);
             $user = (new User)->forceFill([
                 'name' => $data['name'],
                 'email' => $data['email'],
@@ -65,7 +70,7 @@ class UserController extends Controller
             $user->save();
             $user->enableLogging();
 
-            $user->syncRoles($data['role']);
+            $user->syncRoles($role);
 
             activity()
                 ->causedBy(auth()->user())
@@ -92,6 +97,9 @@ class UserController extends Controller
     public function edit(User $user)
     {
         Gate::authorize('manage', $user);
+        if ($user->is(auth()->user())) {
+            return redirect()->route('profile.edit');
+        }
 
         return view('users.edit', [
             'user' => $user->load('roles'),
@@ -104,48 +112,35 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
         $data = $request->validated();
 
-        // Roles before the change, for the activity log
-        $oldRoles = $user->getRoleNames()->sort()->values()->all();
-
-        $user->fill([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-        ]);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-        $user->save();
-
-        $notificationSent = true;
-
-        if ($user->wasChanged('email')) {
-            // Sign the user out everywhere (skip when editing yourself, or you would log yourself out)
-            if ($user->isNot(auth()->user())) {
+        $emailChanged = $user->email !== $data['email'];
+        DB::transaction(function () use ($user, $data, &$emailChanged): void {
+            $role = Role::where('name', $data['role'])->where('guard_name', 'web')->lockForUpdate()->firstOrFail();
+            $user = User::query()->lockForUpdate()->findOrFail($user->id);
+            Gate::authorize('manage', $user);
+            abort_unless(auth()->user()->assignableRoles()->contains($role->name), 403);
+            $oldRoles = $user->getRoleNames()->sort()->values()->all();
+            $user->fill(['name' => $data['name'], 'email' => $data['email'], 'phone' => $data['phone'] ?? null]);
+            $changedEmail = $user->isDirty('email');
+            $emailChanged = $changedEmail;
+            if ($changedEmail) {
+                $user->email_verified_at = null;
+            }
+            $user->save();
+            if ($changedEmail) {
                 $this->revokeAccess($user);
             }
-
-            if ($user->invited_at) {
-                // Invite not accepted yet: the old token belongs to the old address, so send a fresh one
-                $notificationSent = $this->sendInviteSafely($user);
-            } else {
-                $notificationSent = $this->sendVerificationSafely($user);
+            $user->syncRoles($role);
+            if ($oldRoles !== [$role->name]) {
+                activity()->causedBy(auth()->user())->performedOn($user)
+                    ->withProperties(['old' => $oldRoles, 'new' => [$role->name]])->log('Role changed');
             }
-        }
-
-        if ($user->isNot(auth()->user()) && isset($data['role'])) {
-            $user->syncRoles($data['role']);
-
-            $newRoles = [$data['role']];
-
-            if ($oldRoles !== $newRoles) {
-                activity()
-                    ->causedBy(auth()->user())
-                    ->performedOn($user)
-                    ->withProperties(['old' => $oldRoles, 'new' => $newRoles])
-                    ->log('Role changed');
-            }
+        });
+        $user->refresh();
+        $notificationSent = true;
+        if ($emailChanged) {
+            $notificationSent = $user->invited_at
+                ? $this->sendInviteSafely($user)
+                : $this->sendVerificationSafely($user);
         }
 
         return redirect()->route('users.index')->with(
@@ -281,10 +276,11 @@ class UserController extends Controller
     private function revokeAccess(User $user): void
     {
         $user->tokens()->delete();                                   // Sanctum tokens
+        $user->increment('auth_version');
         $user->forceFill(['remember_token' => null])->saveQuietly(); // invalidate remember-me cookie
 
         if (config('session.driver') === 'database') {               // web sessions
-            DB::table(config('session.table', 'sessions'))
+            DB::connection(config('session.connection'))->table(config('session.table', 'sessions'))
                 ->where('user_id', $user->id)
                 ->delete();
         }

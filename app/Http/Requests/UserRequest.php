@@ -12,7 +12,11 @@ class UserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Route middleware enforces authorization.
+        $target = $this->route('user');
+        if ($target && $target->is($this->user())) {
+            return false;
+        }
+
         return true;
     }
 

@@ -43,7 +43,8 @@ D.addEventListener('click', (e) => {
     const tg = t.closest('[data-tg]');
     if (tg) {
         if (H.classList.contains('sm-nav') && innerWidth >= 1024) setSmallNav(false);
-        tg.parentElement.classList.toggle('open');
+        const expanded = tg.parentElement.classList.toggle('open');
+        tg.setAttribute('aria-expanded', String(expanded));
         return;
     }
 
@@ -116,3 +117,10 @@ window.addEventListener('scroll', onScroll, { passive: true });
 
 sync();
 onScroll();
+
+D.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeMenus();
+        H.classList.remove('sb-open', 'st-open');
+    }
+});

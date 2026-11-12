@@ -1,6 +1,6 @@
 @props(['user', 'size' => 'size-9'])
 @php
-    $src = $user->avatar ? \Illuminate\Support\Facades\Storage::url($user->avatar) : null;
+    $src = $user->avatar ? \Illuminate\Support\Facades\Storage::disk('public')->url($user->avatar) : null;
     $initials = collect(preg_split('/\s+/', trim($user->name)))
         ->filter()
         ->take(2)

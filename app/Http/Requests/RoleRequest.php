@@ -37,7 +37,7 @@ class RoleRequest extends FormRequest
             'name' => ['required', 'string', 'max:50', 'regex:/^[a-z0-9_-]+$/',
                 Rule::unique('roles', 'name')->ignore($role?->id)],
             'permissions' => ['nullable', 'array'],
-            'permissions.*' => [Rule::in($this->user()->assignablePermissions()->pluck('name')->all())],
+            'permissions.*' => ['string', 'distinct', Rule::in($this->user()->assignablePermissions()->pluck('name')->all())],
         ];
     }
 

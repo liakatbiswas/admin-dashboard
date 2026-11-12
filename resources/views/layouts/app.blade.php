@@ -60,13 +60,13 @@
 
             @canany(['users.view', 'users.create'])
                 <div class="group {{ request()->routeIs('users.*') ? 'open' : '' }}">
-                    <a class="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[14.5px] lg:[.sm-nav_&]:justify-center {{ request()->routeIs('users.*') ? 'bg-tint font-medium text-primary' : 'text-ink hover:bg-soft' }}"
+                    <button type="button" aria-expanded="{{ request()->routeIs('users.*') ? 'true' : 'false' }}" class="flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[14.5px] lg:[.sm-nav_&]:justify-center {{ request()->routeIs('users.*') ? 'bg-tint font-medium text-primary' : 'text-ink hover:bg-soft' }}"
                         data-tg>
                         <x-icon name="users" />
                         <span class="lg:[.sm-nav_&]:hidden">Users</span>
                         <x-icon name="chev"
                             class="ml-auto size-4 transition-transform group-[.open]:rotate-90 lg:[.sm-nav_&]:hidden" />
-                    </a>
+                    </button>
                     <div class="hidden pb-1 pl-[42px] pt-0.5 group-[.open]:block lg:[.sm-nav_&]:!hidden">
                         @can('users.view')
                             <a href="{{ route('users.index') }}"
@@ -82,13 +82,13 @@
 
             @can('roles.manage')
                 <div class="group {{ request()->routeIs('roles.*') ? 'open' : '' }}">
-                    <a class="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[14.5px] lg:[.sm-nav_&]:justify-center {{ request()->routeIs('roles.*') ? 'bg-tint font-medium text-primary' : 'text-ink hover:bg-soft' }}"
+                    <button type="button" aria-expanded="{{ request()->routeIs('roles.*') ? 'true' : 'false' }}" class="flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2.5 text-[14.5px] lg:[.sm-nav_&]:justify-center {{ request()->routeIs('roles.*') ? 'bg-tint font-medium text-primary' : 'text-ink hover:bg-soft' }}"
                         data-tg>
                         <x-icon name="lock" />
                         <span class="lg:[.sm-nav_&]:hidden">Roles</span>
                         <x-icon name="chev"
                             class="ml-auto size-4 transition-transform group-[.open]:rotate-90 lg:[.sm-nav_&]:hidden" />
-                    </a>
+                    </button>
                     <div class="hidden pb-1 pl-[42px] pt-0.5 group-[.open]:block lg:[.sm-nav_&]:!hidden">
                         <a href="{{ route('roles.index') }}"
                             class="block px-2 py-1.5 text-sm text-mute hover:text-primary">All roles</a>

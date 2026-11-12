@@ -1,4 +1,4 @@
-<x-app-layout title="Dashboard" title="Dashboard">
+<x-app-layout title="Dashboard">
     @php
         $stats = [
             ['label' => 'Total users', 'value' => $totalUsers, 'icon' => 'users', 'tone' => 'b'],

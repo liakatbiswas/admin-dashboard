@@ -39,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
             'admission.manage',
         ]));
 
-        View::composer('*', function ($view) {
+        View::composer(['layouts.app', 'layouts.guest', 'components.logo', 'welcome'], function ($view) {
             $view->with('siteSettings', SiteSetting::current());
         });
 
@@ -55,6 +55,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(Login::class, function (Login $e) {
+            if ($e->guard === 'web' && request()->hasSession()) {
+                request()->session()->put('auth.version', (int) $e->user->auth_version);
+            }
             activity('auth')->causedBy($e->user)
                 ->withProperties(['ip' => request()->ip()])
                 ->log('Logged in');
@@ -69,6 +72,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(PasswordReset::class, function (PasswordReset $event) {
+            $event->user->tokens()->delete();
             $event->user->forceFill([
                 'invited_at' => null,
                 'email_verified_at' => $event->user->email_verified_at ?? now(),
@@ -85,6 +89,10 @@ class AppServiceProvider extends ServiceProvider
             // Limit each administrator to ten user creations per minute.
             return Limit::perMinute(10)->by($request->user()->id);
         });
+        RateLimiter::for('registration', fn (Request $request) => [
+            Limit::perMinute(5)->by('registration:'.$request->ip()),
+            Limit::perHour(20)->by('registration:'.$request->ip()),
+        ]);
         RateLimiter::for('user-invitations', function (Request $request) {
             return [
                 Limit::perMinute(3)->by($request->user()->id),

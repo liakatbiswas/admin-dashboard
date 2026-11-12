@@ -8,6 +8,7 @@
     </div>
     <form method="POST" action="{{ route('settings.admission.toggle') }}">
         @csrf
+        <input type="hidden" name="is_on" value="{{ $admissionOn ? '0' : '1' }}">
         <x-button :variant="$admissionOn ? 's' : 'p'">
             {{ $admissionOn ? 'Turn off' : 'Turn on' }}
         </x-button>

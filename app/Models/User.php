@@ -38,11 +38,12 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_active' => 'boolean',
             'invited_at' => 'datetime',
+            'auth_version' => 'integer',
         ];
     }
 
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'auth_version',
         'two_factor_secret', 'two_factor_recovery_codes',
     ];
 

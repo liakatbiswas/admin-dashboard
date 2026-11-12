@@ -39,10 +39,10 @@ class RegistrationTest extends TestCase
     public function test_super_admin_can_toggle_registration(): void
     {
         $this->actingAs($this->superAdmin())
-            ->post(route('settings.admission.toggle'))->assertRedirect();
+            ->post(route('settings.admission.toggle'), ['is_on' => false])->assertRedirect();
         $this->assertFalse(AdmissionOnOff::isOn());
 
-        $this->post(route('settings.admission.toggle'));
+        $this->post(route('settings.admission.toggle'), ['is_on' => true]);
         $this->assertTrue(AdmissionOnOff::isOn());
     }
 

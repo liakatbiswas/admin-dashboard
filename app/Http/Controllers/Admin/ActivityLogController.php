@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityLogController extends Controller
@@ -24,7 +25,7 @@ class ActivityLogController extends Controller
         ]);
 
         $activities = Activity::query()
-            ->with(['causer', 'subject'])
+            ->with('causer')
             ->when($filters['log'] ?? null, fn ($q, $log) => $q->where('log_name', $log))
             ->when($filters['user'] ?? null, function ($q, $user) {
                 $term = trim($user);
@@ -43,9 +44,10 @@ class ActivityLogController extends Controller
             })
             ->when($filters['q'] ?? null, fn ($q, $term) => $q
                 ->where('description', 'like', '%'.$term.'%'))
-            ->when($filters['from'] ?? null, fn ($q, $from) => $q->whereDate('created_at', '>=', $from))
-            ->when($filters['to'] ?? null, fn ($q, $to) => $q->whereDate('created_at', '<=', $to))
+            ->when($filters['from'] ?? null, fn ($q, $from) => $q->where('created_at', '>=', $from.' 00:00:00'))
+            ->when($filters['to'] ?? null, fn ($q, $to) => $q->where('created_at', '<', Carbon::parse($to)->addDay()->startOfDay()))
             ->latest()
+            ->orderByDesc('id')
             ->paginate(20)
             ->withQueryString();
 

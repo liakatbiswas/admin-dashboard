@@ -1,7 +1,10 @@
 @php
     $editing = isset($role) && $role->exists;
     $locked = $isProtected ?? false;
+    $selected = session()->hasOldInput('permissions_submitted') ? old('permissions', []) : ($selected ?? []);
+    $selected = is_array($selected) ? $selected : [];
 @endphp
+<input type="hidden" name="permissions_submitted" value="1">
 
 <div class="max-w-md">
     <x-field label="Role name" name="name" :value="$editing ? $role->name : null" placeholder="content-editor" :readonly="$locked" required />
@@ -34,6 +37,9 @@
     @endforelse
 
     @error('permissions.*')
+        <p class="text-sm text-bad">{{ $message }}</p>
+    @enderror
+    @error('permissions')
         <p class="text-sm text-bad">{{ $message }}</p>
     @enderror
 </div>
