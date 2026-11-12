@@ -127,14 +127,16 @@
                                             <x-icon name="edit" class="size-3.5" /> Edit
                                         </a>
                                     @endif
-                                    <form method="POST" action="{{ route('users.destroy', $user) }}"
-                                        data-confirm="Are you sure you want to delete {{ $user->name }}?">
-                                        @csrf
-                                        @method('DELETE')
-                                        <x-button variant="bad" size="sm">
-                                            <x-icon name="trash" class="size-3.5" /> Delete
-                                        </x-button>
-                                    </form>
+                                    @if ($canDelete && $canManage && !$isSelf)
+                                        <form method="POST" action="{{ route('users.destroy', $user) }}"
+                                            data-confirm="Are you sure you want to delete {{ $user->name }}?">
+                                            @csrf
+                                            @method('DELETE')
+                                            <x-button variant="bad" size="sm">
+                                                <x-icon name="trash" class="size-3.5" /> Delete
+                                            </x-button>
+                                        </form>
+                                    @endif
                                 @endif
                             </div>
                         </td>

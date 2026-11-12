@@ -78,10 +78,14 @@ class UserController extends Controller
             return $user;
         });
 
-        $this->sendInvite($user);
+        $sent = $this->sendInviteSafely($user);
 
-        return redirect()->route('users.index')
-            ->with('success', "An invitation has been sent to {$user->email}.");
+        return redirect()->route('users.index')->with(
+            $sent ? 'success' : 'warning',
+            $sent
+                ? "An invitation has been sent to {$user->email}."
+                : "The account was created, but the invitation could not be sent. You can resend it from the user list."
+        );
     }
 
     public function edit(User $user)
@@ -113,6 +117,8 @@ class UserController extends Controller
         }
         $user->save();
 
+        $notificationSent = true;
+
         if ($user->wasChanged('email')) {
             // Sign the user out everywhere (skip when editing yourself, or you would log yourself out)
             if ($user->isNot(auth()->user())) {
@@ -121,9 +127,9 @@ class UserController extends Controller
 
             if ($user->invited_at) {
                 // Invite not accepted yet: the old token belongs to the old address, so send a fresh one
-                $this->sendInvite($user);
+                $notificationSent = $this->sendInviteSafely($user);
             } else {
-                $user->sendEmailVerificationNotification();
+                $notificationSent = $this->sendVerificationSafely($user);
             }
         }
 
@@ -141,7 +147,12 @@ class UserController extends Controller
             }
         }
 
-        return redirect()->route('users.index')->with('success', 'User has been updated.');
+        return redirect()->route('users.index')->with(
+            $notificationSent ? 'success' : 'warning',
+            $notificationSent
+                ? 'User has been updated.'
+                : 'User has been updated, but the email could not be sent. Please retry the invitation or verification email.'
+        );
     }
 
     public function toggle(User $user): RedirectResponse
@@ -198,7 +209,9 @@ class UserController extends Controller
             return back()->withErrors(['user' => 'This user has already set a password.']);
         }
 
-        $this->sendInvite($user);
+        if (! $this->sendInviteSafely($user)) {
+            return back()->with('warning', 'The invitation could not be sent. Please try again later.');
+        }
 
         activity()
             ->causedBy(auth()->user())
@@ -212,6 +225,32 @@ class UserController extends Controller
     {
         $token = Password::broker(config('fortify.passwords'))->createToken($user);
         $user->notify(new AccountInvitation($token));
+    }
+
+    private function sendInviteSafely(User $user): bool
+    {
+        try {
+            $this->sendInvite($user);
+
+            return true;
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return false;
+        }
+    }
+
+    private function sendVerificationSafely(User $user): bool
+    {
+        try {
+            $user->sendEmailVerificationNotification();
+
+            return true;
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return false;
+        }
     }
 
     private function revokeAccess(User $user): void

@@ -177,9 +177,9 @@
                 </nav>
             </div>
 
-            @foreach (['success', 'status', 'error'] as $key)
+            @foreach (['success', 'status', 'error', 'warning'] as $key)
                 @if (session($key))
-                    <x-alert :tone="$key === 'error' ? 'bad' : 'ok'">{{ session($key) }}</x-alert>
+                    <x-alert :tone="$key === 'error' ? 'bad' : ($key === 'warning' ? 'warn' : 'ok')">{{ session($key) }}</x-alert>
                 @endif
             @endforeach
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RoleRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
@@ -12,7 +13,10 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::withCount(['users', 'permissions'])->orderBy('name')->get();
+        $roles = Role::withCount([
+            'users' => fn ($query) => $query->withTrashed(),
+            'permissions',
+        ])->orderBy('name')->get();
 
         return view('roles.index', compact('roles'));
     }
@@ -92,7 +96,9 @@ class RoleController extends Controller
             return back()->withErrors(['role' => 'This role cannot be deleted.']);
         }
 
-        if ($role->users()->exists()) {
+        if (User::withTrashed()
+            ->whereHas('roles', fn ($query) => $query->whereKey($role->getKey()))
+            ->exists()) {
             return back()->withErrors(['role' => 'There are users in this role; change their roles first.']);
         }
 
