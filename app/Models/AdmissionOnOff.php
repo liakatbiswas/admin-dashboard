@@ -9,6 +9,8 @@ class AdmissionOnOff extends Model
 {
     protected $table = 'admission_on_off';
 
+    protected $fillable = ['is_on'];
+
     protected $casts = ['is_on' => 'boolean'];
 
     public static function isOn(): bool
