@@ -18,7 +18,11 @@
         <select id="{{ $id }}" name="{{ $name }}" class="{{ $inputClass }}"
             {{ $attributes->except('id') }}>
             @foreach ($options as $optionValue => $optionLabel)
-                <option value="{{ $optionValue }}" @selected((string) $current === (string) $optionValue)>{{ __($optionLabel) }}</option>
+                @php
+                    $optionValue = is_scalar($optionValue) ? (string) $optionValue : '';
+                    $optionLabel = is_scalar($optionLabel) ? (string) $optionLabel : $optionValue;
+                @endphp
+                <option value="{{ $optionValue }}" @selected((string) $current === $optionValue)>{{ $optionLabel }}</option>
             @endforeach
         </select>
     @else

@@ -51,9 +51,18 @@ class ActivityLogController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $logOptions = ['' => __('All logs')] + Activity::query()
+            ->whereNotNull('log_name')
+            ->distinct()
+            ->orderBy('log_name')
+            ->pluck('log_name')
+            ->filter(fn ($name) => is_string($name) && $name !== '')
+            ->mapWithKeys(fn (string $name) => [$name => $name])
+            ->all();
+
         return view('activity.index', [
             'activities' => $activities,
-            'logNames' => Activity::query()->distinct()->pluck('log_name')->filter()->values(),
+            'logOptions' => $logOptions,
         ]);
     }
 }

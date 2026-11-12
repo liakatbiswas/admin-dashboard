@@ -1,9 +1,13 @@
-<form method="POST" action="{{ route('locale.update') }}" {{ $attributes->class(['flex items-center gap-2']) }}>
+@php
+    $nextLocale = app()->getLocale() === 'bn' ? 'en' : 'bn';
+    $switchLabel = $nextLocale === 'bn' ? 'Switch to Bengali' : 'Switch to English';
+@endphp
+
+<form method="POST" action="{{ route('locale.update') }}" {{ $attributes->class(['flex items-center']) }}>
     @csrf
-    <label class="sr-only" for="language-select">{{ __('Language') }}</label>
-    <select id="language-select" name="locale" class="rounded-md border border-line bg-card px-2 py-1.5 text-sm text-head">
-        <option value="en" lang="en" @selected(app()->getLocale() === 'en')>English</option>
-        <option value="bn" lang="bn" @selected(app()->getLocale() === 'bn')>বাংলা</option>
-    </select>
-    <button type="submit" class="rounded-md bg-soft px-2 py-1.5 text-sm text-head">{{ __('Apply') }}</button>
+    <input type="hidden" name="locale" value="{{ $nextLocale }}">
+    <button type="submit" title="{{ __($switchLabel) }}" aria-label="{{ __($switchLabel) }}"
+        class="relative grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-mute hover:bg-soft hover:text-head focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+        <span class="text-xs font-semibold">{{ $nextLocale === 'bn' ? 'বাংলা' : 'English' }}</span>
+    </button>
 </form>
