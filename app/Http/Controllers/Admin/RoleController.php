@@ -33,6 +33,9 @@ class RoleController extends Controller
         $role->syncPermissions($data['permissions'] ?? []);
 
         activity()->causedBy(auth()->user())->performedOn($role)
+            ->withProperties([
+                'permissions' => $role->permissions()->orderBy('name')->pluck('name')->all(),
+            ])
             ->log("Role created: {$role->name}");
 
         return redirect()->route('roles.index')->with('success', "Role '{$role->name}' has been created.");
@@ -61,13 +64,23 @@ class RoleController extends Controller
          */
         $assignable = auth()->user()->assignablePermissions()->pluck('name');
         $locked = $role->permissions->pluck('name')->diff($assignable);
+        $oldPermissions = $role->permissions->pluck('name')->sort()->values()->all();
 
         $role->update(['name' => $data['name']]);
         $role->syncPermissions(
             collect($data['permissions'] ?? [])->merge($locked)->unique()->all()
         );
+        $newPermissions = $role->permissions()->orderBy('name')->pluck('name')->all();
 
         activity()->causedBy(auth()->user())->performedOn($role)
+            ->withProperties([
+                'permissions' => [
+                    'old' => $oldPermissions,
+                    'new' => $newPermissions,
+                    'added' => array_values(array_diff($newPermissions, $oldPermissions)),
+                    'removed' => array_values(array_diff($oldPermissions, $newPermissions)),
+                ],
+            ])
             ->log("Role updated: {$role->name}");
 
         return redirect()->route('roles.index')->with('success', 'Role has been updated.');

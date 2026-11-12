@@ -47,31 +47,35 @@ class UserController extends Controller
         /**  The super admin provides the email address, and the
          * 'set-password' link itself serves as proof of ownership.
          */
-        $user = (new User)->forceFill([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-            'password' => Str::random(40),
-            'email_verified_at' => now(),
-            'is_active' => true,
-            'invited_at' => now(),
-        ]);
+        $user = DB::transaction(function () use ($data) {
+            $user = (new User)->forceFill([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'] ?? null,
+                'password' => Str::random(40),
+                'email_verified_at' => now(),
+                'is_active' => true,
+                'invited_at' => now(),
+            ]);
 
-        // Skip the automatic "created" log; the manual "invited" log below replaces it
-        $user->disableLogging();
-        $user->save();
-        $user->enableLogging();
+            // Skip the automatic "created" log; the manual "invited" log below replaces it
+            $user->disableLogging();
+            $user->save();
+            $user->enableLogging();
 
-        $user->syncRoles($data['role']);
+            $user->syncRoles($data['role']);
 
-        activity()
-            ->causedBy(auth()->user())
-            ->performedOn($user)
-            ->withProperties([
-                'role' => $data['role'],
-                'attributes' => $user->only(['name', 'email', 'phone']),
-            ])
-            ->log("User invited: {$user->email}");
+            activity()
+                ->causedBy(auth()->user())
+                ->performedOn($user)
+                ->withProperties([
+                    'role' => $data['role'],
+                    'attributes' => $user->only(['name', 'email', 'phone']),
+                ])
+                ->log("User invited: {$user->email}");
+
+            return $user;
+        });
 
         $this->sendInvite($user);
 
