@@ -9,7 +9,7 @@ class SiteSettingRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('settings.manage') ?? false;
+        return $this->user()?->can('settings.site.manage') ?? false;
     }
 
     public function rules(): array

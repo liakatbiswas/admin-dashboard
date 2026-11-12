@@ -1,5 +1,6 @@
 <x-app-layout title="Settings" :crumbs="['Settings' => null]">
     <div class="max-w-4xl space-y-6">
+        @can('settings.site.manage')
         <x-card class="p-6">
             <h2 class="text-[15px] font-medium text-head">Site information</h2>
             <p class="mb-5 mt-1 text-mute">
@@ -66,7 +67,9 @@
                 </div>
             </form>
         </x-card>
+        @endcan
 
+        @can('admission.manage')
         <x-card class="p-6">
             <h2 class="text-[15px] font-medium text-head">Admissions</h2>
             <p class="mb-5 mt-1 text-mute">
@@ -76,5 +79,6 @@
                 'admissionOn' => $admissionOn,
             ])
         </x-card>
+        @endcan
     </div>
 </x-app-layout>

@@ -46,7 +46,7 @@
             </p>
             <x-nav-link :href="route('dashboard')" icon="home" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
 
-            @canany(['users.view', 'users.create', 'roles.manage', 'activity.view', 'settings.manage'])
+            @canany(['users.view', 'users.create', 'roles.manage', 'activity.view', 'settings.site.manage', 'admission.manage'])
                 <p class="px-3 pb-1.5 pt-[18px] text-xs font-medium tracking-[.08em] text-mute lg:[.sm-nav_&]:hidden">
                     Administration</p>
             @endcanany
@@ -54,7 +54,7 @@
             @can('activity.view')
                 <x-nav-link :href="route('activity.index')" icon="clock" :active="request()->routeIs('activity.*')">Activity log</x-nav-link>
             @endcan
-            @can('settings.manage')
+            @canany(['settings.site.manage', 'admission.manage'])
                 <x-nav-link :href="route('settings.index')" icon="gear" :active="request()->routeIs('settings.*')">Settings</x-nav-link>
             @endcan
 
@@ -142,7 +142,7 @@
                             class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-[7px] text-ink hover:bg-soft">
                             <x-icon name="user" /> My profile
                         </a>
-                        @can('settings.manage')
+                        @canany(['settings.site.manage', 'admission.manage'])
                             <a href="{{ route('settings.index') }}"
                                 class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-3 py-[7px] text-ink hover:bg-soft">
                                 <x-icon name="gear" /> Settings

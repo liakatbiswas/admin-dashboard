@@ -16,12 +16,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
-    Route::middleware('can:settings.manage')->prefix('admin')->group(function () {
-        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-        Route::put('/settings/site', [SettingController::class, 'updateSite'])->name('settings.site.update');
-        Route::post('/settings/admission', [SettingController::class, 'toggleAdmission'])
-            ->name('settings.admission.toggle');
-    });
+    Route::get('/admin/settings', [SettingController::class, 'index'])
+        ->middleware('can:settings.access')
+        ->name('settings.index');
+    Route::put('/admin/settings/site', [SettingController::class, 'updateSite'])
+        ->middleware('can:settings.site.manage')
+        ->name('settings.site.update');
+    Route::post('/admin/settings/admission', [SettingController::class, 'toggleAdmission'])
+        ->middleware('can:admission.manage')
+        ->name('settings.admission.toggle');
 
     Route::prefix('admin')->controller(UserController::class)->group(function () {
         Route::get('users', 'index')->middleware('can:users.view')->name('users.index');

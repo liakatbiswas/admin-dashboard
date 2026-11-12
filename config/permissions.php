@@ -14,6 +14,7 @@ return [
         'users' => 'User Management',
         'roles' => 'Roles',
         'settings' => 'Settings',
+        'admission' => 'Admissions',
         'activity' => 'Activity Log',
     ],
 
@@ -24,7 +25,8 @@ return [
         'users.edit' => 'Edit Users and Activate/Deactivate Accounts',
         'users.delete' => 'Delete and Restore Users',
         'roles.manage' => 'Manage Roles and Permissions',
-        'settings.manage' => 'Manage Settings (Enable/Disable Registration)',
+        'settings.site.manage' => 'Manage Site Settings',
+        'admission.manage' => 'Enable or Disable Admissions',
         'activity.view' => 'View Activity Logs',
     ],
 ];

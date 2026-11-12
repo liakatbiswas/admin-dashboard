@@ -34,6 +34,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('settings.access', fn (User $user) => $user->canAny([
+            'settings.site.manage',
+            'admission.manage',
+        ]));
+
         View::composer('*', function ($view) {
             $view->with('siteSettings', SiteSetting::current());
         });
