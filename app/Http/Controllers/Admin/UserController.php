@@ -22,6 +22,7 @@ class UserController extends Controller
             ->when($request->status === 'trashed', fn ($q) => $q->onlyTrashed())
             ->when($request->status === 'active', fn ($q) => $q->where('is_active', true))
             ->when($request->status === 'inactive', fn ($q) => $q->where('is_active', false))
+            ->when($request->status === 'invited', fn ($q) => $q->whereNotNull('invited_at'))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%'.$request->q.'%';
                 $q->where(fn ($w) => $w->where('name', 'like', $term)

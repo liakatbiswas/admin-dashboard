@@ -17,7 +17,7 @@
             </div>
             <select name="status" class="rounded-md border border-line bg-card px-3 py-2 text-sm text-head"
                 onchange="this.form.submit()">
-                @foreach (['' => 'All', 'active' => 'Active', 'inactive' => 'Inactive', 'trashed' => 'Deleted'] as $value => $label)
+                @foreach (['' => 'All', 'active' => 'Active', 'inactive' => 'Inactive', 'invited' => 'Invite pending', 'trashed' => 'Deleted'] as $value => $label)
                     <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
@@ -77,6 +77,9 @@
                         <td>
                             @if ($user->trashed())
                                 <span class="rounded bg-bad/15 px-2 py-0.5 text-xs font-medium text-bad">Deleted</span>
+                            @elseif ($user->invited_at)
+                                <span class="rounded bg-info/15 px-2 py-0.5 text-xs font-medium text-info"
+                                    title="Invited {{ $user->invited_at->diffForHumans() }}">Invite pending</span>
                             @elseif ($user->is_active)
                                 <span class="rounded bg-ok/15 px-2 py-0.5 text-xs font-medium text-ok">Active</span>
                             @else
@@ -124,17 +127,14 @@
                                             <x-icon name="edit" class="size-3.5" /> Edit
                                         </a>
                                     @endif
-
-                                    @if ($canDelete && $canManage && !$isSelf)
-                                        <form method="POST" action="{{ route('users.destroy', $user) }}"
-                                            data-confirm="{{ $user->name }} কে মুছে ফেলবেন?">
-                                            @csrf
-                                            @method('DELETE')
-                                            <x-button variant="bad" size="sm">
-                                                <x-icon name="trash" class="size-3.5" /> Delete
-                                            </x-button>
-                                        </form>
-                                    @endif
+                                    <form method="POST" action="{{ route('users.destroy', $user) }}"
+                                        data-confirm="Are you sure you want to delete {{ $user->name }}?">
+                                        @csrf
+                                        @method('DELETE')
+                                        <x-button variant="bad" size="sm">
+                                            <x-icon name="trash" class="size-3.5" /> Delete
+                                        </x-button>
+                                    </form>
                                 @endif
                             </div>
                         </td>
