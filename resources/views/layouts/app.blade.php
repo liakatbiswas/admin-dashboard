@@ -11,9 +11,10 @@
 
     <title>{{ $siteSettings->site_title }} | {{ __($title) }}</title>
 
-    <link rel="icon" href="{{ $siteSettings->favicon_path
-        ? \Illuminate\Support\Facades\Storage::disk('public')->url($siteSettings->favicon_path)
-        : asset('assets/images/logo/favicon.ico') }}">
+    <link rel="icon"
+        href="{{ $siteSettings->favicon_path
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($siteSettings->favicon_path)
+            : asset('assets/images/logo/favicon.ico') }}">
 
 
     <script>
@@ -35,12 +36,12 @@
     </div>
 
     {{-- Sidebar --}}
-    @include('layouts._sidebar')
+    @include('layouts.app-parts.sidebar')
 
     {{-- Main column --}}
     <div id="wrap"
         class="flex min-h-screen flex-col transition-[margin] duration-200 lg:ml-[250px] lg:[.sm-nav_&]:ml-[70px]">
-    @include('layouts._header')
+        @include('layouts.app-parts.header')
 
         <main class="min-w-0 flex-1 p-4 sm:p-6">
 
@@ -70,7 +71,7 @@
 
         </main>
 
-    @include('layouts._footer')
+        @include('layouts.app-parts.footer')
     </div>
 
     {{-- Back to top --}}
@@ -78,7 +79,6 @@
         class="fixed bottom-5 right-14 z-[25] grid size-10 cursor-pointer place-items-center rounded-full bg-primary text-white opacity-0 pointer-events-none transition-opacity">
         <x-icon name="up" />
     </button>
-
 
 
 </body>
