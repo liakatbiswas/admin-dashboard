@@ -18,7 +18,10 @@ abstract class TestCase extends BaseTestCase
 
     protected function superAdmin(): User
     {
-        return User::where('email', config('permissions.super_admin.email'))->firstOrFail();
+        $user = User::where('email', config('permissions.super_admin.email'))->firstOrFail();
+        $user->forceFill(['must_change_password' => false, 'phone' => '01700000000', 'verified_phone' => '01700000000', 'phone_verified_at' => now(), 'email_verified_at' => now()])->saveQuietly();
+
+        return $user;
     }
 
     protected function userWithPermissions(array $permissions): User

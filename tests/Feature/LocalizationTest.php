@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Notifications\AccountInvitation;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -72,11 +71,10 @@ class LocalizationTest extends TestCase
         return $cases;
     }
 
-    public function test_invitation_email_uses_the_selected_language(): void
+    public function test_temporary_password_page_uses_the_selected_language(): void
     {
-        app()->setLocale('bn');
-        $mail = (new AccountInvitation('example-token'))->toMail($this->superAdmin());
-        $this->assertSame('পাসওয়ার্ড সেট করুন', $mail->actionText);
-        $this->assertStringContainsString('আপনার অ্যাকাউন্ট তৈরি হয়েছে', $mail->subject);
+        $this->actingAs($this->superAdmin())->withSession(['locale' => 'bn'])->post(route('users.store'), [
+            'name' => 'Teacher', 'email' => 'localized@example.com', 'roles' => ['teacher'],
+        ])->assertOk()->assertSee('অস্থায়ী পাসওয়ার্ড')->assertSee('বাংলাদেশ সময়');
     }
 }

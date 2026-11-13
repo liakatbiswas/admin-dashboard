@@ -12,6 +12,9 @@
                 <p class="px-3 pb-1.5 pt-[18px] text-xs font-medium tracking-[.08em] text-mute lg:[.sm-nav_&]:hidden">{{ __('Administration') }}</p>
             @endcanany
 
+            @can('users.verify')
+                <x-nav-link :href="route('contact-verifications.index')" icon="lock" :active="request()->routeIs('contact-verifications.*')">{{ __('Contact verification') }}</x-nav-link>
+            @endcan
             @can('activity.view')
                 <x-nav-link :href="route('activity.index')" icon="clock" :active="request()->routeIs('activity.*')">{{ __('Activity log') }}</x-nav-link>
             @endcan
@@ -50,7 +53,7 @@
                         @endcan
                         @can('users.create')
                             <a href="{{ route('users.create') }}"
-                                class="block px-2 py-1.5 text-sm text-mute hover:text-primary">{{ __('Invite user') }}</a>
+                                class="block px-2 py-1.5 text-sm text-mute hover:text-primary">{{ __('Create user') }}</a>
                         @endcan
                     </div>
                 </div>

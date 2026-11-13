@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Models\User;
-use App\Notifications\AccountInvitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Password;
@@ -45,53 +45,50 @@ class UserController extends Controller
         return view('users.create', ['roles' => auth()->user()->assignableRoles()]);
     }
 
-    public function store(UserRequest $request): RedirectResponse
+    public function store(UserRequest $request): Response
     {
         $data = $request->validated();
 
-        /**  The super admin provides the email address, and the
-         * 'set-password' link itself serves as proof of ownership.
-         */
-        $user = DB::transaction(function () use ($data) {
-            $role = Role::where('name', $data['role'])->where('guard_name', 'web')->lockForUpdate()->firstOrFail();
-            abort_unless(auth()->user()->assignableRoles()->contains($role->name), 403);
+        $temporaryPassword = Str::password(20);
+        $user = DB::transaction(function () use ($data, $temporaryPassword) {
+            $roles = Role::whereIn('name', $data['roles'])->where('guard_name', 'web')
+                ->orderBy('id')->lockForUpdate()->get();
+            abort_unless($roles->count() === count($data['roles'])
+                && $roles->pluck('name')->diff(auth()->user()->assignableRoles())->isEmpty(), 403);
             $user = (new User)->forceFill([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
-                'password' => Str::random(40),
-                'email_verified_at' => now(),
+                'password' => $temporaryPassword,
+                'must_change_password' => true,
+                'temporary_password_expires_at' => now()->addHours(24),
+                'email_verified_at' => null,
                 'is_active' => true,
-                'invited_at' => now(),
             ]);
 
-            // Skip the automatic "created" log; the manual "invited" log below replaces it
+            // The manual creation event below includes the assigned roles.
             $user->disableLogging();
             $user->save();
             $user->enableLogging();
 
-            $user->syncRoles($role);
+            $user->syncRoles($roles);
 
             activity()
                 ->causedBy(auth()->user())
                 ->performedOn($user)
                 ->withProperties([
-                    'role' => $data['role'],
+                    'roles' => $roles->pluck('name')->sort()->values()->all(),
                     'attributes' => $user->only(['name', 'email', 'phone']),
                 ])
-                ->log("User invited: {$user->email}");
+                ->log("User created: {$user->email}");
+
+            activity('security')->causedBy(auth()->user())->performedOn($user)
+                ->log('Temporary password issued');
 
             return $user;
         });
 
-        $sent = $this->sendInviteSafely($user);
-
-        return redirect()->route('users.index')->with(
-            $sent ? 'success' : 'warning',
-            $sent
-                ? __('An invitation has been sent to :email.', ['email' => $user->email])
-                : __('The account was created, but the invitation could not be sent. You can resend it from the user list.')
-        );
+        return $this->temporaryPasswordResponse($user, $temporaryPassword);
     }
 
     public function edit(User $user)
@@ -114,10 +111,12 @@ class UserController extends Controller
 
         $emailChanged = $user->email !== $data['email'];
         DB::transaction(function () use ($user, $data, &$emailChanged): void {
-            $role = Role::where('name', $data['role'])->where('guard_name', 'web')->lockForUpdate()->firstOrFail();
+            $roles = Role::whereIn('name', $data['roles'])->where('guard_name', 'web')
+                ->orderBy('id')->lockForUpdate()->get();
             $user = User::query()->lockForUpdate()->findOrFail($user->id);
             Gate::authorize('manage', $user);
-            abort_unless(auth()->user()->assignableRoles()->contains($role->name), 403);
+            abort_unless($roles->count() === count($data['roles'])
+                && $roles->pluck('name')->diff(auth()->user()->assignableRoles())->isEmpty(), 403);
             $oldRoles = $user->getRoleNames()->sort()->values()->all();
             $user->fill(['name' => $data['name'], 'email' => $data['email'], 'phone' => $data['phone'] ?? null]);
             $changedEmail = $user->isDirty('email');
@@ -129,26 +128,16 @@ class UserController extends Controller
             if ($changedEmail) {
                 $this->revokeAccess($user);
             }
-            $user->syncRoles($role);
-            if ($oldRoles !== [$role->name]) {
+            $user->syncRoles($roles);
+            $newRoles = $roles->pluck('name')->sort()->values()->all();
+            if ($oldRoles !== $newRoles) {
                 activity()->causedBy(auth()->user())->performedOn($user)
-                    ->withProperties(['old' => $oldRoles, 'new' => [$role->name]])->log('Role changed');
+                    ->withProperties(['old' => $oldRoles, 'new' => $newRoles])->log('Role changed');
             }
         });
         $user->refresh();
-        $notificationSent = true;
-        if ($emailChanged) {
-            $notificationSent = $user->invited_at
-                ? $this->sendInviteSafely($user)
-                : $this->sendVerificationSafely($user);
-        }
 
-        return redirect()->route('users.index')->with(
-            $notificationSent ? 'success' : 'warning',
-            $notificationSent
-                ? __('User has been updated.')
-                : __('User has been updated, but the email could not be sent. Please retry the invitation or verification email.')
-        );
+        return redirect()->route('users.index')->with('success', __('User has been updated.'));
     }
 
     public function toggle(User $user): RedirectResponse
@@ -221,56 +210,39 @@ class UserController extends Controller
         return back()->with('success', __('The user has been permanently deleted.'));
     }
 
-    public function invite(User $user): RedirectResponse
+    public function resetTemporaryPassword(User $user): Response
     {
+        abort_if($user->is(auth()->user()), 403);
         Gate::authorize('manage', $user);
 
-        if (is_null($user->invited_at)) {
-            return back()->withErrors(['user' => __('This user has already set a password.')]);
-        }
+        $temporaryPassword = Str::password(20);
+        DB::transaction(function () use ($user, $temporaryPassword): void {
+            $user = User::query()->lockForUpdate()->findOrFail($user->id);
+            Gate::authorize('manage', $user);
+            $user->forceFill([
+                'password' => $temporaryPassword,
+                'must_change_password' => true,
+                'temporary_password_expires_at' => now()->addHours(24),
+                'invited_at' => null,
+            ])->save();
+            $this->revokeAccess($user);
+            Password::broker(config('fortify.passwords'))->deleteToken($user);
+            activity('security')->causedBy(auth()->user())->performedOn($user)
+                ->log('Temporary password reset');
+        });
 
-        if (! $this->sendInviteSafely($user)) {
-            return back()->with('warning', __('The invitation could not be sent. Please try again later.'));
-        }
-
-        activity()
-            ->causedBy(auth()->user())
-            ->performedOn($user)
-            ->log("Invitation resent: {$user->email}");
-
-        return back()->with('success', __('The invitation has been sent again.'));
+        return $this->temporaryPasswordResponse($user->refresh(), $temporaryPassword);
     }
 
-    private function sendInvite(User $user): void
+    private function temporaryPasswordResponse(User $user, #[\SensitiveParameter] string $temporaryPassword): Response
     {
-        $token = Password::broker(config('fortify.passwords'))->createToken($user);
-        $user->notify(new AccountInvitation($token));
-    }
-
-    private function sendInviteSafely(User $user): bool
-    {
-        try {
-            $this->sendInvite($user);
-
-            return true;
-        } catch (\Throwable $exception) {
-            report($exception);
-
-            return false;
+        if (app()->bound('debugbar')) {
+            app('debugbar')->disable();
         }
-    }
 
-    private function sendVerificationSafely(User $user): bool
-    {
-        try {
-            $user->sendEmailVerificationNotification();
-
-            return true;
-        } catch (\Throwable $exception) {
-            report($exception);
-
-            return false;
-        }
+        return response()->view('users.temporary-password', compact('user', 'temporaryPassword'))
+            ->header('Cache-Control', 'no-store, private')
+            ->header('Pragma', 'no-cache');
     }
 
     private function revokeAccess(User $user): void

@@ -27,7 +27,7 @@
         @if ($canCreate)
             <a href="{{ route('users.create') }}"
                 class="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#2862d8]">
-                <x-icon name="plus" class="size-4" /> {{ __('Invite user') }} </a>
+                <x-icon name="plus" class="size-4" /> {{ __('Create user') }} </a>
         @endif
     </div>
 
@@ -79,6 +79,8 @@
                             @elseif (!$user->is_active)
                                 <span
                                     class="rounded bg-warn/15 px-2 py-0.5 text-xs font-medium text-warn">{{ __('Inactive') }}</span>
+                            @elseif ($user->must_change_password)
+                                <span class="rounded bg-info/15 px-2 py-0.5 text-xs font-medium text-info">{{ __('Password change required') }}</span>
                             @elseif ($user->invited_at)
                                 <span class="rounded bg-info/15 px-2 py-0.5 text-xs font-medium text-info"
                                     title="{{ __('Invited :time', ['time' => $user->invited_at->locale(app()->getLocale())->diffForHumans()]) }}">{{ __('Invite pending') }}</span>
@@ -119,10 +121,11 @@
                                         </form>
                                     @endif
                                 @else
-                                    @if ($canCreate && $canManage && $user->invited_at)
-                                        <form method="POST" action="{{ route('users.invite', $user) }}">
+                                    @if ($canCreate && $canManage && !$isSelf)
+                                        <form method="POST" action="{{ route('users.temporary-password', $user) }}"
+                                            data-confirm="{{ __('Reset this password and sign out existing sessions?') }}">
                                             @csrf
-                                            <x-button variant="s" size="sm">{{ __('Resend invite') }}</x-button>
+                                            <x-button variant="s" size="sm">{{ __('Reset password') }}</x-button>
                                         </form>
                                     @endif
 

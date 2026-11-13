@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\EnsureProfileIsReady;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\ThrottleRegistration;
@@ -19,8 +21,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->authenticateSessions();
         $middleware->appendToGroup('web', SetLocale::class);
         $middleware->appendToGroup('web', EnsureUserIsActive::class);
+        $middleware->appendToGroup('web', EnsurePasswordIsChanged::class);
+        $middleware->appendToGroup('web', EnsureProfileIsReady::class);
         $middleware->appendToGroup('web', ThrottleRegistration::class);
         $middleware->appendToGroup('api', EnsureUserIsActive::class);
+        $middleware->appendToGroup('api', EnsurePasswordIsChanged::class);
+        $middleware->appendToGroup('api', EnsureProfileIsReady::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

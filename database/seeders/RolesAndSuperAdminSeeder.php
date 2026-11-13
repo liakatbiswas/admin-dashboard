@@ -16,8 +16,11 @@ class RolesAndSuperAdminSeeder extends Seeder
     {
         $this->call(PermissionSeeder::class);
 
-        $super = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
-        Role::firstOrCreate(['name' => 'student', 'guard_name' => 'web']);
+        foreach (config('permissions.protected_roles') as $name) {
+            Role::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
+        }
+
+        $super = Role::findByName('super-admin', 'web');
 
         $email = config('permissions.super_admin.email');
         $password = config('permissions.super_admin.password');
@@ -31,10 +34,13 @@ class RolesAndSuperAdminSeeder extends Seeder
             [
                 'name' => 'Md. Liakat Biswas',
                 'password' => $password,
-                'email_verified_at' => now(),
+                'email_verified_at' => null,
                 'is_active' => true,
             ]
         );
+        if ($user->wasRecentlyCreated) {
+            $user->forceFill(['must_change_password' => true])->saveQuietly();
+        }
         $user->assignRole($super);
 
         AdmissionOnOff::firstOrCreate(['id' => 1], ['is_on' => true]);

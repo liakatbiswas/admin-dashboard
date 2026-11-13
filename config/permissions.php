@@ -8,7 +8,7 @@ return [
     ],
 
     // These roles cannot be deleted or renamed.
-    'protected_roles' => ['super-admin', 'student'],
+    'protected_roles' => ['super-admin', 'admin', 'teacher', 'clerk', 'student', 'guardian', 'staff'],
 
     'groups' => [
         'users' => 'User Management',
@@ -20,8 +20,9 @@ return [
 
     // To add new permissions, define them here and run PermissionSeeder.
     'permissions' => [
+        'users.verify' => 'Verify User Contact Details',
         'users.view' => 'View User List',
-        'users.create' => 'Create New Users / Send Invitations',
+        'users.create' => 'Create Users and Issue Temporary Passwords',
         'users.edit' => 'Edit Users and Activate/Deactivate Accounts',
         'users.delete' => 'Delete and Restore Users',
         'roles.manage' => 'Manage Roles and Permissions',

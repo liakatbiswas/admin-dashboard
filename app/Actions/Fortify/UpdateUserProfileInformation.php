@@ -3,10 +3,8 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
-use App\Notifications\AccountEmailChanged;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -24,6 +22,9 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      */
     public function update(User $user, array $input): void
     {
+        if (isset($input['phone']) && is_string($input['phone'])) {
+            $input['phone'] = User::normalizePhone($input['phone']);
+        }
         $emailChanged = isset($input['email']) && $input['email'] !== $user->email;
 
         Validator::make($input, [
@@ -32,7 +33,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'current_password' => $emailChanged
                 ? ['required', 'string', 'current_password:web']
                 : ['nullable', 'string'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => [$user->requiresAdministrativeProfile() ? 'required' : 'nullable', 'string', 'regex:/^01[3-9][0-9]{8}$/'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'address' => ['nullable', 'string', 'max:500'],
             'avatar' => [
@@ -72,11 +73,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $data['avatar'] = $user->avatar;
         }
 
-        $oldEmail = $user->email;
         try {
             DB::transaction(function () use ($user, $data, $emailChanged, &$oldAvatar): void {
                 $current = User::query()->lockForUpdate()->findOrFail($user->id);
-                abort_unless($current->email === $user->email, 409, __('Your profile changed. Reload the page and try again.'));
+                abort_unless($current->email === $user->email && $current->phone === $user->phone, 409, __('Your profile changed. Reload the page and try again.'));
                 $oldAvatar = $current->avatar;
                 $user->forceFill($emailChanged ? $data + ['email_verified_at' => null] : $data)->save();
                 if ($emailChanged) {
@@ -96,20 +96,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         if ($emailChanged) {
             Auth::guard('web')->logoutOtherDevices($input['current_password']);
-            foreach ([
-                fn () => $user->sendEmailVerificationNotification(),
-                fn () => Notification::route('mail', $oldEmail)
-                    ->notify(new AccountEmailChanged($user->name, $oldEmail, $user->email)),
-            ] as $notify) {
-                try {
-                    $notify();
-                } catch (\Throwable $exception) {
-                    report($exception);
-                    if (request()->hasSession()) {
-                        request()->session()->flash('warning', __('Your profile was saved, but an email could not be sent. Please retry email verification or contact an administrator.'));
-                    }
-                }
-            }
         }
     }
 }

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use App\Notifications\AccountInvitation;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -34,20 +33,19 @@ class UserManagementTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_super_admin_creates_user_and_invite_is_sent(): void
+    public function test_super_admin_creates_user_without_sending_an_email(): void
     {
         Notification::fake();
-        Role::create(['name' => 'teacher', 'guard_name' => 'web']);
 
         $this->actingAs($this->superAdmin())->post(route('users.store'), [
             'name' => 'Teacher One',
             'email' => 'teacher@example.com',
-            'role' => 'teacher',
-        ])->assertRedirect(route('users.index'));
+            'roles' => ['teacher'],
+        ])->assertOk()->assertViewIs('users.temporary-password');
 
         $user = User::where('email', 'teacher@example.com')->firstOrFail();
         $this->assertTrue($user->hasRole('teacher'));
-        Notification::assertSentTo($user, AccountInvitation::class);
+        Notification::assertNothingSent();
     }
 
     public function test_user_manager_cannot_edit_super_admin(): void
@@ -59,7 +57,7 @@ class UserManagementTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_cannot_assign_a_role_stronger_than_your_own(): void
+    public function test_user_creation_permission_does_not_allow_a_non_super_admin_to_create_accounts(): void
     {
         Role::create(['name' => 'powerful', 'guard_name' => 'web'])->givePermissionTo('users.delete');
         $manager = $this->userWithPermissions(['users.create']);
@@ -67,8 +65,8 @@ class UserManagementTest extends TestCase
         $this->actingAs($manager)->post(route('users.store'), [
             'name' => 'X',
             'email' => 'x@example.com',
-            'role' => 'powerful',
-        ])->assertSessionHasErrors('role');
+            'roles' => ['powerful'],
+        ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', ['email' => 'x@example.com']);
     }

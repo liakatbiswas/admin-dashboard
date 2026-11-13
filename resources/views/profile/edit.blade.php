@@ -1,6 +1,14 @@
 <x-app-layout title="My profile" :crumbs="['My profile' => null]">
 
     <div class="max-w-4xl">
+        @if ($user->requiresAdministrativeProfile() && (! $user->profileIsComplete() || ! $user->contactsAreVerified()))
+            <x-card class="mb-6 p-6">
+                <h2 class="font-medium text-head">{{ __('Complete your profile') }}</h2>
+                <p class="mt-2 text-mute">{{ __('Add your name and mobile number, then ask a Super Admin to verify your email and mobile. Other features will become available after verification.') }}</p>
+                <p class="mt-2 text-mute">{{ __('Email') }}: {{ $user->email_verified_at ? __('Verified') : __('Pending verification') }}</p>
+                <p class="mt-1 text-mute">{{ __('Phone') }}: {{ $user->phone_verified_at ? __('Verified') : __('Pending verification') }}</p>
+            </x-card>
+        @endif
         <div class="space-y-6">
             {{-- Profile information --}}
             <x-card class="p-6">
@@ -35,7 +43,7 @@
                             bag="updateProfileInformation" required />
                         <x-field label="Current password (required to change email)" name="current_password"
                             type="password" autocomplete="current-password" bag="updateProfileInformation" />
-                        <x-field label="Phone" name="phone" :value="$user->phone" bag="updateProfileInformation" />
+                        <x-field label="Phone" name="phone" :value="$user->phone" :required="$user->requiresAdministrativeProfile()" bag="updateProfileInformation" />
                         <x-field label="Address" name="address" :value="$user->address" bag="updateProfileInformation" />
                     </div>
                     <x-field label="Bio" name="bio" type="textarea" :value="$user->bio"

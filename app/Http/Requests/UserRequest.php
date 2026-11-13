@@ -17,7 +17,7 @@ class UserRequest extends FormRequest
             return false;
         }
 
-        return true;
+        return $this->user()?->hasRole('super-admin') ?? false;
     }
 
     /**
@@ -27,15 +27,14 @@ class UserRequest extends FormRequest
     {
 
         $target = $this->route('user');
-        $isSelf = $target && $target->is($this->user());
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255',
                 Rule::unique('users', 'email')->ignore($target?->id)],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'role' => [$isSelf ? 'nullable' : 'required',
-                Rule::in($this->user()->assignableRoles())],
+            'phone' => ['nullable', 'string', 'regex:/^(?:\+?88)?01[3-9][0-9]{8}$/'],
+            'roles' => ['required', 'array', 'list', 'min:1'],
+            'roles.*' => ['required', 'string', 'distinct', Rule::in($this->user()->assignableRoles())],
         ];
     }
 

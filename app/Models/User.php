@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -16,7 +15,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasRoles, LogsActivity,
         Notifiable, SoftDeletes, TwoFactorAuthenticatable;
@@ -35,10 +34,13 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'invited_at' => 'datetime',
             'auth_version' => 'integer',
+            'must_change_password' => 'boolean',
+            'temporary_password_expires_at' => 'datetime',
         ];
     }
 
@@ -55,27 +57,68 @@ class User extends Authenticatable implements MustVerifyEmail
             ->dontLogEmptyChanges();
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            $user->phone = static::normalizePhone($user->phone);
+            if ($user->exists && $user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+            if ($user->exists && $user->isDirty('phone')) {
+                $user->phone_verified_at = null;
+                $user->verified_phone = null;
+            }
+        });
+    }
+
+    public static function normalizePhone(?string $phone): ?string
+    {
+        $phone = preg_replace('/[\s()-]+/', '', $phone ?? '');
+        if (str_starts_with($phone, '+880')) {
+            $phone = '0'.substr($phone, 4);
+        } elseif (str_starts_with($phone, '880')) {
+            $phone = '0'.substr($phone, 3);
+        }
+
+        return $phone === '' ? null : $phone;
+    }
+
+    public function requiresAdministrativeProfile(): bool
+    {
+        return $this->hasAnyRole(['super-admin', 'admin', 'teacher', 'clerk', 'staff']);
+    }
+
+    public function profileIsComplete(): bool
+    {
+        return filled($this->name) && filled($this->email)
+            && preg_match('/^01[3-9][0-9]{8}$/', $this->phone ?? '') === 1;
+    }
+
+    public function contactsAreVerified(): bool
+    {
+        return $this->email_verified_at !== null && $this->phone_verified_at !== null
+            && $this->phone !== null && $this->verified_phone === $this->phone;
+    }
+
+    public function temporaryPasswordHasExpired(): bool
+    {
+        return $this->must_change_password && $this->temporary_password_expires_at !== null
+            && $this->temporary_password_expires_at->lessThanOrEqualTo(now());
+    }
+
     public function assignableRoles(): Collection
     {
         if ($this->hasRole('super-admin')) {
-            return Role::orderBy('name')->pluck('name');
+            return Role::where('guard_name', 'web')->orderBy('name')->pluck('name');
         }
 
-        $mine = $this->getAllPermissions()->pluck('name');
-
-        return Role::with('permissions')
-            ->where('name', '!=', 'super-admin')
-            ->orderBy('name')
-            ->get()
-            ->filter(fn ($role) => $role->permissions->pluck('name')->diff($mine)->isEmpty())
-            ->pluck('name')
-            ->values();
+        return collect();
     }
 
     public function assignablePermissions(): Collection
     {
         return $this->hasRole('super-admin')
             ? Permission::orderBy('name')->get()
-            : $this->getAllPermissions()->sortBy('name')->values();
+            : collect();
     }
 }

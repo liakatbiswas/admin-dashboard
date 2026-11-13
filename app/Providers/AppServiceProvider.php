@@ -26,7 +26,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register before permission-package callbacks so stored permissions cannot bypass this boundary.
+        Gate::before(function (User $user, string $ability): ?bool {
+            if (in_array($ability, ['users.create', 'users.edit', 'users.delete', 'users.verify', 'roles.manage'], true)) {
+                return $user->hasRole('super-admin');
+            }
+
+            return null;
+        });
     }
 
     /**
@@ -75,7 +82,6 @@ class AppServiceProvider extends ServiceProvider
             $event->user->tokens()->delete();
             $event->user->forceFill([
                 'invited_at' => null,
-                'email_verified_at' => $event->user->email_verified_at ?? now(),
             ])->save();
             activity('security')->causedBy($event->user)->log('Password reset');
         });
@@ -93,7 +99,7 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by('registration:'.$request->ip()),
             Limit::perHour(20)->by('registration:'.$request->ip()),
         ]);
-        RateLimiter::for('user-invitations', function (Request $request) {
+        RateLimiter::for('user-password-resets', function (Request $request) {
             return [
                 Limit::perMinute(3)->by($request->user()->id),
                 Limit::perHour(10)->by($request->user()->id),

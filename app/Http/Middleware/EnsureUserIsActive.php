@@ -21,8 +21,11 @@ class EnsureUserIsActive
             && $request->session()->has(Auth::guard('web')->getName())
             && $request->session()->get('auth.version') !== (int) $user->auth_version;
 
-        if ($user && (! $user->is_active || $staleSession)) {
+        if ($user && (! $user->is_active || $staleSession || $user->temporaryPasswordHasExpired())) {
             $message = $user->is_active ? __('Your session has expired. Please sign in again.') : __('Your account has been deactivated.');
+            if ($user->is_active && $user->temporaryPasswordHasExpired()) {
+                $message = __('Your temporary password has expired. Contact an administrator for a new password.');
+            }
             if ($request->hasSession()) {
                 if (Auth::guard('web')->id() === $user->getAuthIdentifier()) {
                     Auth::guard('web')->logout();

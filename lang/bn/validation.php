@@ -57,6 +57,8 @@ return [
         'bio' => 'পরিচিতি',
         'avatar' => 'ছবি',
         'role' => 'ভূমিকা',
+        'roles' => 'ভূমিকা',
+        'roles.*' => 'ভূমিকা',
         'permissions' => 'অনুমতি',
         'permissions.*' => 'অনুমতি',
         'locale' => 'ভাষা',

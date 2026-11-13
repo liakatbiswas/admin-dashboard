@@ -5,10 +5,6 @@ namespace Tests\Feature;
 use App\Models\AdmissionOnOff;
 use App\Models\SiteSetting;
 use App\Models\User;
-use App\Notifications\AccountEmailChanged;
-use App\Notifications\AccountInvitation;
-use Illuminate\Auth\Notifications\VerifyEmail;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
@@ -16,7 +12,6 @@ use Illuminate\Notifications\Channels\MailChannel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
@@ -30,15 +25,10 @@ class AuditRegressionTest extends TestCase
     {
         $user = User::factory()->create();
         $token = $user->createToken('existing')->plainTextToken;
-        $reset = Password::broker()->createToken($user);
-
-        $this->post(route('password.update'), [
-            'email' => $user->email, 'token' => $reset,
-            'password' => 'New-Password-123', 'password_confirmation' => 'New-Password-123',
-        ])->assertSessionHasNoErrors();
+        $this->actingAs($this->superAdmin())->post(route('users.temporary-password', $user))->assertOk();
 
         $this->assertSame(0, $user->tokens()->count());
-        $this->withToken($token)->getJson('/api/user')->assertUnauthorized();
+        $this->assertDatabaseMissing('personal_access_tokens', ['id' => explode('|', $token)[0]]);
     }
 
     public function test_profile_requires_password_confirmation_before_revealing_recovery_codes(): void
@@ -62,7 +52,7 @@ class AuditRegressionTest extends TestCase
         $email = $user->email;
 
         $this->actingAs($user)->put(route('users.update', $user), [
-            'name' => $user->name, 'email' => 'attacker@example.com', 'role' => 'super-admin',
+            'name' => $user->name, 'email' => 'attacker@example.com', 'roles' => ['super-admin'],
         ])->assertForbidden();
 
         $this->assertSame($email, $user->fresh()->email);
@@ -115,24 +105,18 @@ class AuditRegressionTest extends TestCase
         Storage::disk('public')->assertExists($user->fresh()->avatar);
     }
 
-    public function test_verification_failure_does_not_skip_old_address_security_alert(): void
+    public function test_profile_email_change_revokes_tokens_without_sending_verification_email(): void
     {
+        Notification::fake();
         $user = User::factory()->create();
-        $oldEmail = $user->email;
         $token = $user->createToken('old');
-        $channel = Mockery::mock(MailChannel::class);
-        $channel->shouldReceive('send')->once()->withArgs(fn ($notifiable, $notification) => $notification instanceof VerifyEmail)
-            ->andThrow(new \RuntimeException('mail unavailable'));
-        $channel->shouldReceive('send')->once()->withArgs(fn ($notifiable, $notification) => $notification instanceof AccountEmailChanged && $notifiable->routes['mail'] === $oldEmail);
-        $this->app->instance(MailChannel::class, $channel);
-
         $this->actingAs($user)->put(route('user-profile-information.update'), [
             'name' => $user->name, 'email' => 'changed@example.com', 'current_password' => 'password',
-        ])->assertSessionHasNoErrors()->assertSessionHas('warning');
-
+        ])->assertSessionHasNoErrors();
         $this->assertSame('changed@example.com', $user->fresh()->email);
         $this->assertNull($user->fresh()->email_verified_at);
         $this->assertModelMissing($token->accessToken);
+        Notification::assertNothingSent();
     }
 
     public function test_registration_returns_429_after_repeated_attempts(): void
@@ -246,32 +230,32 @@ class AuditRegressionTest extends TestCase
         $this->assertSame('Updated school', SiteSetting::current()->site_title);
     }
 
-    public function test_user_role_and_email_update_is_persisted_before_notification(): void
+    public function test_user_role_and_email_update_requires_manual_verification(): void
     {
         Notification::fake();
         $user = User::factory()->create()->assignRole('student');
         $user->createToken('existing');
 
         $this->actingAs($this->superAdmin())->put(route('users.update', $user), [
-            'name' => 'Updated name', 'email' => 'updated@example.com', 'role' => 'student',
+            'name' => 'Updated name', 'email' => 'updated@example.com', 'roles' => ['student'],
         ])->assertSessionHasNoErrors();
 
         $this->assertSame('updated@example.com', $user->fresh()->email);
         $this->assertNull($user->fresh()->email_verified_at);
         $this->assertSame(0, $user->tokens()->count());
-        Notification::assertSentTo($user, VerifyEmail::class);
+        Notification::assertNothingSent();
     }
 
-    public function test_invitation_is_delivered_without_a_delayed_queue_job(): void
+    public function test_account_creation_does_not_send_email_or_create_reset_tokens(): void
     {
         Notification::fake();
         $this->actingAs($this->superAdmin())->post(route('users.store'), [
-            'name' => 'Invite', 'email' => 'invite@example.com', 'role' => 'student',
-        ])->assertSessionHasNoErrors();
+            'name' => 'Invite', 'email' => 'invite@example.com', 'roles' => ['student'],
+        ])->assertOk()->assertSessionHasNoErrors();
         $user = User::where('email', 'invite@example.com')->firstOrFail();
 
-        Notification::assertSentTo($user, AccountInvitation::class, fn ($notification) => ! $notification instanceof ShouldQueue
-            && Password::broker()->tokenExists($user, $notification->token));
+        Notification::assertNothingSent();
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
     }
 
     public function test_revoked_session_is_rejected_without_relying_on_database_session_deletion(): void
@@ -341,19 +325,19 @@ class AuditRegressionTest extends TestCase
         $this->assertSame(['avatars/old.png'], Storage::disk('public')->allFiles('avatars'));
     }
 
-    public function test_failed_invitation_delivery_preserves_account_for_resending(): void
+    public function test_account_creation_does_not_depend_on_mail_delivery(): void
     {
         $channel = Mockery::mock(MailChannel::class);
-        $channel->shouldReceive('send')->once()->andThrow(new \RuntimeException('mail unavailable'));
+        $channel->shouldNotReceive('send');
         $this->app->instance(MailChannel::class, $channel);
 
         $this->actingAs($this->superAdmin())->post(route('users.store'), [
-            'name' => 'Retry invitation', 'email' => 'retry@example.com', 'role' => 'student',
-        ])->assertSessionHas('warning')->assertSessionHasNoErrors();
+            'name' => 'Retry invitation', 'email' => 'retry@example.com', 'roles' => ['student'],
+        ])->assertOk()->assertSessionHasNoErrors();
 
         $user = User::where('email', 'retry@example.com')->firstOrFail();
         $this->assertTrue($user->hasRole('student'));
-        $this->assertNotNull($user->invited_at);
+        $this->assertTrue($user->must_change_password);
     }
 
     public function test_activity_date_filter_includes_end_of_day_but_excludes_next_day(): void
@@ -384,13 +368,13 @@ class AuditRegressionTest extends TestCase
         DB::table('sessions')->insert($row);
 
         $this->actingAs($this->superAdmin())->put(route('users.update', $user), [
-            'name' => $user->name, 'email' => 'new-address@example.com', 'role' => 'student',
+            'name' => $user->name, 'email' => 'new-address@example.com', 'roles' => ['student'],
         ])->assertSessionHasNoErrors();
 
         $this->assertSame(0, DB::connection('session_test')->table('sessions')->where('id', 'target-session')->count());
         $this->assertDatabaseHas('sessions', ['id' => 'target-session']);
         $this->assertSame(1, $user->fresh()->auth_version);
-        Notification::assertSentTo($user, VerifyEmail::class);
+        Notification::assertNothingSent();
     }
 
     public function test_malformed_permission_input_renders_validation_errors_without_server_error(): void

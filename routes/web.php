@@ -1,21 +1,33 @@
 <?php
 
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\ContactVerificationController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
 
 Route::post('/language', LocaleController::class)->name('locale.update');
+
+Route::get('/password/change-required', function (Request $request): View|RedirectResponse {
+    return $request->user()->must_change_password
+        ? view('auth.change-password-required')
+        : redirect()->route('dashboard');
+})->middleware('auth')->name('password.change.required');
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/contact-verifications', [ContactVerificationController::class, 'index'])->middleware('can:users.verify')->name('contact-verifications.index');
+    Route::post('/admin/contact-verifications/{user}', [ContactVerificationController::class, 'store'])->middleware(['can:users.verify', 'throttle:20,1'])->name('contact-verifications.store');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->middleware('password.confirm')->name('profile.edit');
@@ -47,9 +59,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('users/{user}/edit', 'edit')->middleware('can:users.edit')->name('users.edit');
         Route::put('users/{user}', 'update')->middleware('can:users.edit')->name('users.update');
         Route::patch('users/{user}/toggle', 'toggle')->middleware('can:users.edit')->name('users.toggle');
-        Route::post('users/{user}/invite', 'invite')
-            ->middleware(['can:users.create', 'throttle:user-invitations'])
-            ->name('users.invite');
+        Route::post('users/{user}/temporary-password', 'resetTemporaryPassword')
+            ->middleware(['can:users.create', 'throttle:user-password-resets'])
+            ->name('users.temporary-password');
         Route::delete('users/{user}', 'destroy')->middleware('can:users.delete')->name('users.destroy');
         Route::patch('users/{user}/restore', 'restore')
             ->middleware('can:users.delete')
