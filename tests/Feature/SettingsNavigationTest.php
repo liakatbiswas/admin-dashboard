@@ -27,7 +27,7 @@ class SettingsNavigationTest extends TestCase
 
     public function test_student_only_has_access_to_password_settings(): void
     {
-        $student = User::factory()->create()->assignRole('student');
+        $student = User::factory()->create(['student_id' => 'NGHS20270600001'])->assignRole('student');
 
         $this->actingAs($student)->get(route('dashboard'))->assertOk()
             ->assertSee(route('settings.password'), false)

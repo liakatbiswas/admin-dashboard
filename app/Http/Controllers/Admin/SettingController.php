@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SiteSettingRequest;
 use App\Models\AdmissionOnOff;
 use App\Models\SiteSetting;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,13 +20,26 @@ class SettingController extends Controller
     {
         return view('settings.index', [
             'admissionOn' => AdmissionOnOff::isOn(),
+            'admissionSettings' => AdmissionOnOff::find(1),
             'siteSetting' => SiteSetting::current(),
         ]);
     }
 
     public function registration(): View
     {
-        return view('settings.registration', ['admissionOn' => AdmissionOnOff::isOn()]);
+        return view('settings.registration', ['admissionOn' => AdmissionOnOff::isOn(), 'admissionSettings' => AdmissionOnOff::find(1)]);
+    }
+
+    public function deadline(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['deadline' => ['nullable', 'date_format:Y-m-d\TH:i']]);
+        DB::transaction(function () use ($data, $request): void {
+            $settings = AdmissionOnOff::whereKey(1)->lockForUpdate()->firstOrFail();
+            $settings->update(['deadline' => empty($data['deadline']) ? null : Carbon::createFromFormat('Y-m-d\TH:i', $data['deadline'], 'Asia/Dhaka')->startOfMinute()->utc()]);
+            activity('admissions')->causedBy($request->user())->withProperties(['deadline' => $settings->deadline])->log('Admission deadline changed');
+        });
+
+        return back()->with('success', __('Admission deadline saved.'));
     }
 
     public function site(): View

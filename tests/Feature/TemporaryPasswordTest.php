@@ -40,7 +40,7 @@ class TemporaryPasswordTest extends TestCase
         $user = $this->temporaryUser()->forceFill(['email_verified_at' => null]);
         $user->save();
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'Temporary-Password-123'])
+        $this->post('/login', ['login' => $user->email, 'password' => 'Temporary-Password-123'])
             ->assertSessionHasNoErrors();
 
         $this->get('/dashboard')->assertRedirect(route('password.change.required'));
@@ -56,8 +56,8 @@ class TemporaryPasswordTest extends TestCase
         $user = $this->temporaryUser();
         $this->travel($hours)->hours();
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'Temporary-Password-123'])
-            ->assertSessionHasErrors('email');
+        $this->post('/login', ['login' => $user->email, 'password' => 'Temporary-Password-123'])
+            ->assertSessionHasErrors('login');
 
         $this->assertGuest();
     }
@@ -71,7 +71,7 @@ class TemporaryPasswordTest extends TestCase
     {
         $this->freezeTime();
         $user = $this->temporaryUser();
-        $this->post('/login', ['email' => $user->email, 'password' => 'Temporary-Password-123']);
+        $this->post('/login', ['login' => $user->email, 'password' => 'Temporary-Password-123']);
         $this->travel(24)->hours();
 
         $this->get(route('password.change.required'))->assertRedirect(route('login'));
@@ -83,7 +83,7 @@ class TemporaryPasswordTest extends TestCase
     {
         $user = $this->temporaryUser();
         $user->createToken('old-token');
-        $this->post('/login', ['email' => $user->email, 'password' => 'Temporary-Password-123']);
+        $this->post('/login', ['login' => $user->email, 'password' => 'Temporary-Password-123']);
 
         $this->from(route('password.change.required'))->put(route('user-password.update'), [
             'current_password' => 'Temporary-Password-123',

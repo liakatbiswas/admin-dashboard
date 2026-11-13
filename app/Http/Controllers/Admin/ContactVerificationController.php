@@ -14,7 +14,9 @@ class ContactVerificationController extends Controller
     public function index(Request $request): View
     {
         $users = User::query()->whereKeyNot($request->user()->id)->where('is_active', true)
-            ->where(fn ($query) => $query->whereNull('email_verified_at')->orWhereNull('phone_verified_at'))
+            ->where(fn ($query) => $query
+                ->where(fn ($email) => $email->whereNotNull('email')->whereNull('email_verified_at'))
+                ->orWhere(fn ($phone) => $phone->whereNotNull('phone')->whereNull('phone_verified_at')))
             ->with('roles')->orderBy('id')->paginate(15);
 
         return view('users.verifications', compact('users'));

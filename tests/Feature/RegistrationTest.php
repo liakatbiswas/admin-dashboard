@@ -15,23 +15,19 @@ class RegistrationTest extends TestCase
         'password_confirmation' => 'Str0ng-Pass-123',
     ];
 
-    public function test_open_registration_creates_a_student(): void
+    public function test_open_registration_shows_an_application_without_password_fields(): void
     {
 
-        $this->get('/register')->assertOk()->assertSee('Confirm password');
-
-        $this->post('/register', $this->payload);
-
-        $user = User::where('email', 'student@example.com')->first();
-        $this->assertNotNull($user);
-        $this->assertSame(['student'], $user->getRoleNames()->all());
+        $this->get('/register')->assertOk()->assertSee('Admission application')->assertDontSee('name="password"', false);
+        $this->post('/register', $this->payload)->assertSessionHasErrors('academic_year_id');
+        $this->assertDatabaseMissing('users', ['email' => 'student@example.com']);
     }
 
     public function test_closed_registration_shows_notice_and_blocks_post(): void
     {
         AdmissionOnOff::set(false);
 
-        $this->get('/register')->assertOk()->assertSee('Registration is currently closed');
+        $this->get('/register')->assertOk()->assertSee('The registration period has ended.');
         $this->post('/register', $this->payload)->assertForbidden();
         $this->assertDatabaseMissing('users', ['email' => 'student@example.com']);
     }
@@ -48,7 +44,7 @@ class RegistrationTest extends TestCase
 
     public function test_student_cannot_toggle_registration(): void
     {
-        $student = User::factory()->create()->assignRole('student');
+        $student = User::factory()->create(['student_id' => 'NGHS20270600001'])->assignRole('student');
 
         $this->actingAs($student)->post(route('settings.admission.toggle'))->assertForbidden();
         $this->assertTrue(AdmissionOnOff::isOn());

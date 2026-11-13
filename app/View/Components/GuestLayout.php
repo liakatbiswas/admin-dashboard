@@ -12,10 +12,13 @@ class GuestLayout extends Component
 
     public array $crumbs;
 
+    public bool $wide;
+
     /**     * Create a new component instance.
      */
-    public function __construct(string $title = 'Dashboard', array $crumbs = [])
+    public function __construct(string $title = 'Dashboard', array $crumbs = [], bool $wide = false)
     {
+        $this->wide = $wide;
         $this->title = $title;
         $this->crumbs = $crumbs;
     }

@@ -28,8 +28,15 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register before permission-package callbacks so stored permissions cannot bypass this boundary.
         Gate::before(function (User $user, string $ability): ?bool {
-            if (in_array($ability, ['users.create', 'users.edit', 'users.delete', 'users.verify', 'roles.manage'], true)) {
+            if (in_array($ability, ['users.create', 'users.edit', 'users.delete', 'users.verify', 'roles.manage', 'admission.manage'], true)) {
                 return $user->hasRole('super-admin');
+            }
+
+            if (in_array($ability, ['guardians.manage', 'students.credentials'], true) && ! $user->hasAnyRole(['super-admin', 'admin', 'clerk'])) {
+                return false;
+            }
+            if ($ability === 'students.import' && ! $user->hasAnyRole(['super-admin', 'admin', 'teacher', 'clerk'])) {
+                return false;
             }
 
             return null;
@@ -41,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('academics.access', fn (User $user) => $user->canAny(['academics.view', 'academics.manage']));
+        Gate::define('applications.access', fn (User $user) => $user->canAny(['applications.manage', 'applications.admit']));
+        Gate::define('students.access', fn (User $user) => $user->canAny(['students.view', 'students.import', 'guardians.manage', 'students.credentials']));
         Gate::define('settings.access', fn (User $user) => $user->canAny([
             'settings.site.manage',
             'admission.manage',

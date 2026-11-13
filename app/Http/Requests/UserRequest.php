@@ -27,10 +27,12 @@ class UserRequest extends FormRequest
     {
 
         $target = $this->route('user');
+        $roles = is_array($this->input('roles')) ? $this->input('roles') : [];
+        $emailRequired = collect($roles)->contains(fn ($role) => is_string($role) && ! in_array($role, ['student', 'guardian'], true));
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255',
+            'email' => [$emailRequired ? 'required' : 'nullable', 'email', 'max:255',
                 Rule::unique('users', 'email')->ignore($target?->id)],
             'phone' => ['nullable', 'string', 'regex:/^(?:\+?88)?01[3-9][0-9]{8}$/'],
             'roles' => ['required', 'array', 'list', 'min:1'],

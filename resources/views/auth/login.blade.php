@@ -1,6 +1,6 @@
 <x-guest-layout title="Sign in">
     <h4 class="text-center text-xl font-medium text-head">{{ __('Welcome back') }}</h4>
-    <p class="mb-6 mt-1 text-center text-mute">{{ __('Enter your email address and password to access the admin panel.') }}</p>
+    <p class="mb-6 mt-1 text-center text-mute">{{ __('Sign in with your email, verified mobile number or Student ID.') }}</p>
 
     @if (session('status'))
         <x-alert>{{ session('status') }}</x-alert>
@@ -8,7 +8,7 @@
 
     <form method="POST" action="{{ route('login') }}" class="space-y-4">
         @csrf
-        <x-field label="Email address" name="email" type="email" autocomplete="username" placeholder="you@example.com"
+        <x-field label="Email, mobile or Student ID" name="login" type="text" autocomplete="username" placeholder="you@example.com / 01712345678 / NGHS20270600001"
             required autofocus />
         <x-field label="Password" name="password" type="password" autocomplete="current-password"
             placeholder="{{ __('Enter your password') }}" required />
@@ -35,7 +35,7 @@
         @if (\App\Models\AdmissionOnOff::isOn())
             <a href="{{ route('register') }}"
                 class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-line bg-card px-4 py-2 text-sm font-medium text-head transition hover:bg-soft">
-                <x-icon name="user" class="size-4" /> {{ __('Register a new account') }} </a>
+                <x-icon name="user" class="size-4" /> {{ __('Apply for admission') }} </a>
         @else
             <div class="flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-md bg-warn/15 px-4 py-2 text-sm font-medium text-warn"
                 aria-disabled="true">

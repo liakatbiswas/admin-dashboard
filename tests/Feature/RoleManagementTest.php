@@ -66,7 +66,7 @@ class RoleManagementTest extends TestCase
 
     public function test_user_without_permission_gets_403(): void
     {
-        $student = User::factory()->create()->assignRole('student');
+        $student = User::factory()->create(['student_id' => 'NGHS20270600001'])->assignRole('student');
 
         $this->actingAs($student)->get(route('roles.index'))->assertForbidden();
     }

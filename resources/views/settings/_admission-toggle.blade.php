@@ -8,9 +8,9 @@
     </div>
     <form method="POST" action="{{ route('settings.admission.toggle') }}">
         @csrf
-        <input type="hidden" name="is_on" value="{{ $admissionOn ? '0' : '1' }}">
+        <input type="hidden" name="is_on" value="{{ (isset($admissionSettings) ? $admissionSettings?->is_on : $admissionOn) ? '0' : '1' }}">
         <x-button :variant="$admissionOn ? 's' : 'p'">
-            {{ $admissionOn ? __('Turn off') : __('Turn on') }}
+            {{ (isset($admissionSettings) ? $admissionSettings?->is_on : $admissionOn) ? __('Turn off') : __('Turn on') }}
         </x-button>
     </form>
 </div>

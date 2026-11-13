@@ -36,7 +36,7 @@
     </button>
 
     <main class="grid min-h-screen place-items-center p-4 sm:p-6">
-        <div class="w-full max-w-[440px] rounded-lg bg-card p-6 shadow-card sm:p-8">
+        <div class="w-full {{ $wide ? 'max-w-4xl' : 'max-w-[440px]' }} rounded-lg bg-card p-6 shadow-card sm:p-8">
             <div class="mb-6 flex justify-center">
                 <x-logo />
             </div>

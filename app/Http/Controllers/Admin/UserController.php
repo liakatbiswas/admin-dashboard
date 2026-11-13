@@ -57,7 +57,7 @@ class UserController extends Controller
                 && $roles->pluck('name')->diff(auth()->user()->assignableRoles())->isEmpty(), 403);
             $user = (new User)->forceFill([
                 'name' => $data['name'],
-                'email' => $data['email'],
+                'email' => ($data['email'] ?? null),
                 'phone' => $data['phone'] ?? null,
                 'password' => $temporaryPassword,
                 'must_change_password' => true,
@@ -109,7 +109,7 @@ class UserController extends Controller
         Gate::authorize('manage', $user);
         $data = $request->validated();
 
-        $emailChanged = $user->email !== $data['email'];
+        $emailChanged = $user->email !== ($data['email'] ?? null);
         DB::transaction(function () use ($user, $data, &$emailChanged): void {
             $roles = Role::whereIn('name', $data['roles'])->where('guard_name', 'web')
                 ->orderBy('id')->lockForUpdate()->get();
@@ -118,7 +118,7 @@ class UserController extends Controller
             abort_unless($roles->count() === count($data['roles'])
                 && $roles->pluck('name')->diff(auth()->user()->assignableRoles())->isEmpty(), 403);
             $oldRoles = $user->getRoleNames()->sort()->values()->all();
-            $user->fill(['name' => $data['name'], 'email' => $data['email'], 'phone' => $data['phone'] ?? null]);
+            $user->fill(['name' => $data['name'], 'email' => ($data['email'] ?? null), 'phone' => $data['phone'] ?? null]);
             $changedEmail = $user->isDirty('email');
             $emailChanged = $changedEmail;
             if ($changedEmail) {

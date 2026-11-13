@@ -11,8 +11,7 @@ class EnsureProfileIsReady
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if ($user && (! $user->hasVerifiedEmail() || ($user->requiresAdministrativeProfile()
-            && (! $user->profileIsComplete() || ! $user->contactsAreVerified())))
+        if ($user && ! $user->profileIsReady()
             && ! $request->routeIs('profile.edit', 'user-profile-information.update',
                 'password.change.required', 'user-password.update', 'password.confirm',
                 'password.confirm.store', 'password.confirmation', 'logout', 'locale.update')) {

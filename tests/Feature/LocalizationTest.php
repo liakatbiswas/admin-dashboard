@@ -47,7 +47,7 @@ class LocalizationTest extends TestCase
     public function test_validation_errors_use_bangla(): void
     {
         $this->withSession(['locale' => 'bn'])->post('/login', [])
-            ->assertSessionHasErrors(['email' => 'ইমেইল অবশ্যই দিতে হবে।', 'password' => 'পাসওয়ার্ড অবশ্যই দিতে হবে।']);
+            ->assertSessionHasErrors(['login' => 'লগইন পরিচয় অবশ্যই দিতে হবে।', 'password' => 'পাসওয়ার্ড অবশ্যই দিতে হবে।']);
     }
 
     #[DataProvider('localizedPages')]

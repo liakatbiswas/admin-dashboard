@@ -9,9 +9,11 @@
 
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <x-field label="Full name" name="name" :value="$editing ? $user->name : null" required />
-    <x-field label="Email address" name="email" type="email" :value="$editing ? $user->email : null" required />
+    <x-field label="Email address" name="email" type="email" :value="$editing ? $user->email : null" />
     <x-field label="Phone" name="phone" :value="$editing ? $user->phone : null" />
 </div>
+
+<p class="mt-2 text-sm text-mute">{{ __('Email is required for administrative roles and optional for students and guardians.') }}</p>
 
 <input type="hidden" name="roles_submitted" value="1">
 <fieldset class="mt-4 rounded-md border border-line p-4">

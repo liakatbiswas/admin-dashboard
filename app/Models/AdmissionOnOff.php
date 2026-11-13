@@ -9,13 +9,15 @@ class AdmissionOnOff extends Model
 {
     protected $table = 'admission_on_off';
 
-    protected $fillable = ['is_on'];
+    protected $fillable = ['is_on', 'deadline'];
 
-    protected $casts = ['is_on' => 'boolean'];
+    protected $casts = ['is_on' => 'boolean', 'deadline' => 'datetime'];
 
     public static function isOn(): bool
     {
-        return (bool) static::query()->whereKey(1)->value('is_on');
+        $settings = static::query()->find(1);
+
+        return $settings && $settings->is_on && ($settings->deadline === null || now()->lt($settings->deadline));
     }
 
     public static function set(bool $enabled): void

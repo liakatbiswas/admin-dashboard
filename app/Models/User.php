@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
@@ -60,6 +62,7 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::saving(function (User $user): void {
+            $user->email = $user->email === null ? null : Str::lower(trim($user->email));
             $user->phone = static::normalizePhone($user->phone);
             if ($user->exists && $user->isDirty('email')) {
                 $user->email_verified_at = null;
@@ -98,6 +101,32 @@ class User extends Authenticatable
     {
         return $this->email_verified_at !== null && $this->phone_verified_at !== null
             && $this->phone !== null && $this->verified_phone === $this->phone;
+    }
+
+    protected function login(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->email ?? $this->verified_phone ?? $this->student_id ?? (string) $this->id);
+    }
+
+    public function emailIsRequired(): bool
+    {
+        return $this->requiresAdministrativeProfile() || ! $this->hasAnyRole(['student', 'guardian']);
+    }
+
+    public function profileIsReady(): bool
+    {
+        if ($this->requiresAdministrativeProfile()) {
+            return $this->profileIsComplete() && $this->contactsAreVerified();
+        }
+        if ($this->hasRole('guardian')) {
+            return filled($this->name) && $this->phone_verified_at !== null
+                && filled($this->phone) && $this->verified_phone === $this->phone;
+        }
+        if ($this->hasRole('student')) {
+            return filled($this->name) && filled($this->student_id);
+        }
+
+        return $this->hasVerifiedEmail();
     }
 
     public function temporaryPasswordHasExpired(): bool

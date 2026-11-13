@@ -48,7 +48,7 @@ class EnsureUserIsActive
             }
 
             return redirect()->route('login')
-                ->withErrors(['email' => $message]);
+                ->withErrors(['login' => $message]);
         }
 
         return $next($request);

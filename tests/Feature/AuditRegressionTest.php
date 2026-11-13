@@ -31,7 +31,7 @@ class AuditRegressionTest extends TestCase
         $this->assertDatabaseMissing('personal_access_tokens', ['id' => explode('|', $token)[0]]);
     }
 
-    public function test_profile_requires_password_confirmation_before_revealing_recovery_codes(): void
+    public function test_two_factor_settings_require_password_confirmation_before_revealing_recovery_codes(): void
     {
         $user = User::factory()->create();
         $user->forceFill([
@@ -40,10 +40,11 @@ class AuditRegressionTest extends TestCase
             'two_factor_confirmed_at' => now(),
         ])->save();
 
-        $this->actingAs($user)->get(route('profile.edit'))
+        $this->actingAs($user)->get(route('settings.two-factor'))
             ->assertRedirect(route('password.confirm'))->assertDontSee('secret-recovery-code');
-        $this->withSession(['auth.password_confirmed_at' => time()])->get(route('profile.edit'))
+        $this->withSession(['auth.password_confirmed_at' => time()])->get(route('settings.two-factor'))
             ->assertOk()->assertSee('secret-recovery-code');
+        $this->get(route('profile.edit'))->assertOk()->assertDontSee('secret-recovery-code');
     }
 
     public function test_admin_cannot_bypass_profile_rules_using_self_update(): void
@@ -272,9 +273,9 @@ class AuditRegressionTest extends TestCase
 
     public function test_normal_login_stamps_the_session_and_allows_dashboard_access(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create()->assignRole('teacher');
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
+        $this->post('/login', ['login' => $user->email, 'password' => 'password'])
             ->assertSessionHasNoErrors()->assertSessionHas('auth.version', 0);
 
         $this->get('/dashboard')->assertOk();

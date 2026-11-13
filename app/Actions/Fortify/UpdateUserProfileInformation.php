@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
@@ -25,15 +26,18 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         if (isset($input['phone']) && is_string($input['phone'])) {
             $input['phone'] = User::normalizePhone($input['phone']);
         }
-        $emailChanged = isset($input['email']) && $input['email'] !== $user->email;
+        if (isset($input['email']) && is_string($input['email'])) {
+            $input['email'] = Str::lower(trim($input['email']));
+        }
+        $emailChanged = ($input['email'] ?? null) !== $user->email;
 
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'email' => [$user->emailIsRequired() ? 'required' : 'nullable', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'current_password' => $emailChanged
                 ? ['required', 'string', 'current_password:web']
                 : ['nullable', 'string'],
-            'phone' => [$user->requiresAdministrativeProfile() ? 'required' : 'nullable', 'string', 'regex:/^01[3-9][0-9]{8}$/'],
+            'phone' => [($user->requiresAdministrativeProfile() || $user->hasRole('guardian')) ? 'required' : 'nullable', 'string', 'regex:/^01[3-9][0-9]{8}$/'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'address' => ['nullable', 'string', 'max:500'],
             'avatar' => [
@@ -63,7 +67,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         $data = [
             'name' => $input['name'],
-            'email' => $input['email'],
+            'email' => $input['email'] ?? null,
             'phone' => $input['phone'] ?? null,
             'bio' => $input['bio'] ?? null,
             'address' => $input['address'] ?? null,

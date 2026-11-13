@@ -11,7 +11,7 @@ class UserManagementTest extends TestCase
 {
     public function test_inactive_user_is_logged_out_on_next_request(): void
     {
-        $user = User::factory()->create(['is_active' => false]);
+        $user = User::factory()->create(['is_active' => false])->assignRole('teacher');
 
         $this->actingAs($user)->get('/dashboard')->assertRedirect(route('login'));
         $this->assertGuest();
@@ -19,17 +19,17 @@ class UserManagementTest extends TestCase
 
     public function test_inactive_user_cannot_log_in(): void
     {
-        $user = User::factory()->create(['is_active' => false]);
+        $user = User::factory()->create(['is_active' => false])->assignRole('teacher');
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+        $this->post('/login', ['login' => $user->email, 'password' => 'password']);
         $this->assertGuest();
     }
 
     public function test_active_user_can_log_in(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create()->assignRole('teacher');
 
-        $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+        $this->post('/login', ['login' => $user->email, 'password' => 'password']);
         $this->assertAuthenticatedAs($user);
     }
 

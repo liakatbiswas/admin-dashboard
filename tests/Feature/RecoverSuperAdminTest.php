@@ -32,7 +32,7 @@ class RecoverSuperAdminTest extends TestCase
         $audit = Activity::where('description', 'Super Admin created via console')->sole();
         $this->assertNull($audit->causer_id);
         $this->assertSame('artisan', $audit->properties['source']);
-        $this->post('/login', ['email' => $user->email, 'password' => $password])->assertSessionHasNoErrors();
+        $this->post('/login', ['login' => $user->email, 'password' => $password])->assertSessionHasNoErrors();
         $this->get('/dashboard')->assertRedirect(route('password.change.required'));
     }
 

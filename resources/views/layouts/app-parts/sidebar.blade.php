@@ -12,6 +12,9 @@
                 <p class="px-3 pb-1.5 pt-[18px] text-xs font-medium tracking-[.08em] text-mute lg:[.sm-nav_&]:hidden">{{ __('Administration') }}</p>
             @endcanany
 
+            @can('academics.access')<x-nav-link :href="route('academics.index')" icon="home" :active="request()->routeIs('academics.*')">{{ __('Academic structure') }}</x-nav-link>@endcan
+            @can('applications.access')<x-nav-link :href="route('applications.index')" icon="user" :active="request()->routeIs('applications.*')">{{ __('Admission applications') }}</x-nav-link>@endcan
+            @can('students.access')<x-nav-link :href="route('students.index')" icon="user" :active="request()->routeIs('students.*')">{{ __('Students') }}</x-nav-link>@endcan
             @can('users.verify')
                 <x-nav-link :href="route('contact-verifications.index')" icon="lock" :active="request()->routeIs('contact-verifications.*')">{{ __('Contact verification') }}</x-nav-link>
             @endcan
