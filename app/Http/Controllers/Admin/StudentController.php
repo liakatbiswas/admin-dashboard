@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AdmissionRequest;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
+use App\Models\EnrollmentChange;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -41,7 +42,9 @@ class StudentController extends Controller
     {
         return view('students.show', ['student' => $student->load(['user', 'guardianUser', 'enrollments.classroom.academicYear']),
             'rollChanges' => Activity::where('subject_type', $student->getMorphClass())->where('subject_id', $student->id)
-                ->where('description', 'Class roll changed')->with('causer')->latest('id')->paginate(20),
+                ->where('description', 'Class roll changed')->with('causer')->latest('id')->paginate(20, ['*'], 'roll_page')->withQueryString(),
+            'enrollmentChanges' => EnrollmentChange::whereHas('enrollment', fn ($query) => $query->where('student_id', $student->id))
+                ->with('changedBy')->latest('id')->paginate(20, ['*'], 'changes_page')->withQueryString(),
             'classrooms' => Classroom::with('academicYear')->where('is_active', true)->get()]);
     }
 

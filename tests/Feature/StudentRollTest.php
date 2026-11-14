@@ -30,7 +30,7 @@ class StudentRollTest extends TestCase
         $account = User::factory()->create(['student_id' => $student->student_number])->assignRole('student');
         $student->update(['user_id' => $account->id]);
         $identity = $student->only(['student_number', 'admission_year', 'admission_grade', 'admission_serial']);
-        $this->actingAs($officer)->patch($this->url($enrollment), ['roll' => 12, 'expected_roll' => 1, 'reason' => 'Corrected school register', 'student_number' => 'Forged'])->assertRedirect(route('students.show', $student))->assertSessionHasNoErrors();
+        $this->actingAs($officer)->patch($this->url($enrollment), ['expected_classroom_id' => $enrollment->classroom_id, 'roll' => 12, 'expected_roll' => 1, 'reason' => 'Corrected school register', 'student_number' => 'Forged'])->assertRedirect(route('students.show', $student))->assertSessionHasNoErrors();
         $this->assertSame(12, $enrollment->fresh()->roll);
         $this->assertSame($identity, $student->fresh()->only(array_keys($identity)));
         $this->assertSame($student->student_number, $account->fresh()->student_id);
@@ -53,7 +53,7 @@ class StudentRollTest extends TestCase
         $user = User::factory()->create(['student_id' => 'NGHS20270600001'])->assignRole($role);
         $user->givePermissionTo('students.rolls.manage');
         $enrollment = Enrollment::factory()->create();
-        $this->actingAs($user)->patch($this->url($enrollment), ['roll' => 2, 'expected_roll' => 1, 'reason' => 'Attempt'])->assertForbidden();
+        $this->actingAs($user)->patch($this->url($enrollment), ['expected_classroom_id' => $enrollment->classroom_id, 'roll' => 2, 'expected_roll' => 1, 'reason' => 'Attempt'])->assertForbidden();
         $this->assertSame(1, $enrollment->fresh()->roll);
     }
 
@@ -68,7 +68,7 @@ class StudentRollTest extends TestCase
         $user->givePermissionTo('students.view');
         $enrollment = Enrollment::factory()->create();
         $this->actingAs($user)->get(route('students.show', $enrollment->student))->assertOk()->assertDontSee('Change class roll');
-        $this->patch($this->url($enrollment), ['roll' => 2, 'expected_roll' => 1, 'reason' => 'Attempt'])->assertForbidden();
+        $this->patch($this->url($enrollment), ['expected_classroom_id' => $enrollment->classroom_id, 'roll' => 2, 'expected_roll' => 1, 'reason' => 'Attempt'])->assertForbidden();
     }
 
     public function test_duplicate_roll_is_rejected_but_the_same_roll_in_another_classroom_is_allowed(): void
@@ -77,9 +77,9 @@ class StudentRollTest extends TestCase
         $enrollment = Enrollment::factory()->create(['classroom_id' => $room->id]);
         Enrollment::factory()->create(['classroom_id' => $room->id, 'roll' => 2]);
         Enrollment::factory()->create(['roll' => 9]);
-        $this->actingAs($this->superAdmin())->patch($this->url($enrollment), ['roll' => 2, 'expected_roll' => 1, 'reason' => 'Correction'])->assertSessionHasErrors('roll');
+        $this->actingAs($this->superAdmin())->patch($this->url($enrollment), ['expected_classroom_id' => $enrollment->classroom_id, 'roll' => 2, 'expected_roll' => 1, 'reason' => 'Correction'])->assertSessionHasErrors('roll');
         $this->assertSame(1, $enrollment->fresh()->roll);
-        $this->patch($this->url($enrollment), ['roll' => 9, 'expected_roll' => 1, 'reason' => 'Correction'])->assertSessionHasNoErrors();
+        $this->patch($this->url($enrollment), ['expected_classroom_id' => $enrollment->classroom_id, 'roll' => 9, 'expected_roll' => 1, 'reason' => 'Correction'])->assertSessionHasNoErrors();
         $this->assertSame(9, $enrollment->fresh()->roll);
     }
 
@@ -87,8 +87,8 @@ class StudentRollTest extends TestCase
     {
         $enrollment = Enrollment::factory()->create(['roll' => 5]);
         $other = Student::factory()->create();
-        $this->actingAs($this->superAdmin())->patch($this->url($enrollment), ['roll' => 7, 'expected_roll' => 1, 'reason' => 'Stale form'])->assertSessionHasErrors('expected_roll');
-        $this->patch(route('students.roll.update', [$other, $enrollment]), ['roll' => 7, 'expected_roll' => 5, 'reason' => 'Wrong student'])->assertNotFound();
+        $this->actingAs($this->superAdmin())->patch($this->url($enrollment), ['expected_classroom_id' => $enrollment->classroom_id, 'roll' => 7, 'expected_roll' => 1, 'reason' => 'Stale form'])->assertSessionHasErrors('expected_roll');
+        $this->patch(route('students.roll.update', [$other, $enrollment]), ['expected_classroom_id' => $enrollment->classroom_id, 'roll' => 7, 'expected_roll' => 5, 'reason' => 'Wrong student'])->assertNotFound();
         $this->assertSame(5, $enrollment->fresh()->roll);
     }
 
@@ -96,7 +96,7 @@ class StudentRollTest extends TestCase
     public function test_invalid_changes_do_not_write_history(array $changes, string $field): void
     {
         $enrollment = Enrollment::factory()->create();
-        $this->actingAs($this->superAdmin())->patch($this->url($enrollment), [...['roll' => 2, 'expected_roll' => 1, 'reason' => 'Correction'], ...$changes])->assertSessionHasErrors($field);
+        $this->actingAs($this->superAdmin())->patch($this->url($enrollment), ['expected_classroom_id' => $enrollment->classroom_id, ...['roll' => 2, 'expected_roll' => 1, 'reason' => 'Correction'], ...$changes])->assertSessionHasErrors($field);
         $this->assertSame(1, $enrollment->fresh()->roll);
         $this->assertSame(0, Activity::where('description', 'Class roll changed')->count());
     }
@@ -111,7 +111,7 @@ class StudentRollTest extends TestCase
         $enrollment = Enrollment::factory()->create();
         $this->actingAs($this->superAdmin());
         Event::listen('eloquent.creating: '.Activity::class, fn () => throw new \RuntimeException('Audit unavailable'));
-        $this->patch($this->url($enrollment), ['roll' => 2, 'expected_roll' => 1, 'reason' => 'Correction'])->assertServerError();
+        $this->patch($this->url($enrollment), ['expected_classroom_id' => $enrollment->classroom_id, 'roll' => 2, 'expected_roll' => 1, 'reason' => 'Correction'])->assertServerError();
         $this->assertSame(1, $enrollment->fresh()->roll);
     }
 

@@ -13,6 +13,7 @@
         <form method="POST" action="{{ route('students.roll.update', [$student, $enrollment]) }}" class="rounded-md border border-line p-4">
             @csrf @method('PATCH')
             <p class="mb-3 font-medium">{{ $enrollment->classroom->academicYear->year }} / {{ $enrollment->classroom->grade }} / {{ __($enrollment->classroom->shift) }} / {{ $enrollment->classroom->section }} · {{ __('Current roll') }}: {{ $enrollment->roll }}</p>
+            <input type="hidden" name="expected_classroom_id" value="{{ $enrollment->classroom_id }}">
             <input type="hidden" name="expected_roll" value="{{ $enrollment->roll }}">
             <div class="grid items-end gap-4 sm:grid-cols-3">
                 <x-field label="New roll" name="roll" :id="'roll-'.$enrollment->id" type="number" min="1" max="9999" required />
@@ -31,6 +32,7 @@
         @empty<tr><td colspan="7">{{ __('No roll changes yet.') }}</td></tr>@endforelse
         </tbody></table>{{ $rollChanges->links() }}
     </x-card>
+    @include('students._enrollment-changes')
     @can('guardians.manage')<x-card class="mb-6 p-6"><h2 class="mb-4 font-medium">{{ __('Verify and link guardian') }}</h2>
         <p class="mb-4 text-mute">{{ __('Leave blank to match a verified mobile or create a new guardian account. Adding Guardian role to an existing account requires a Super Admin.') }}</p>
         <form method="POST" action="{{ route('students.guardian', $student) }}" class="space-y-4">@csrf

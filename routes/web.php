@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AcademicController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ContactVerificationController;
+use App\Http\Controllers\Admin\EnrollmentChangeController;
 use App\Http\Controllers\Admin\EnrollmentRollController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
@@ -55,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::patch('/admin/students/{student}/enrollments/{enrollment}/roll', [EnrollmentRollController::class, 'update'])
         ->scopeBindings()->middleware('can:students.rolls.manage')->name('students.roll.update');
+    Route::patch('/admin/students/{student}/enrollments/{enrollment}/transfer', [EnrollmentChangeController::class, 'transfer'])
+        ->scopeBindings()->middleware(['can:students.transfers.manage', 'can:students.rolls.manage'])->name('students.transfer');
+    Route::patch('/admin/students/{student}/enrollments/{enrollment}/group', [EnrollmentChangeController::class, 'group'])
+        ->scopeBindings()->middleware('can:students.groups.manage')->name('students.group');
     Route::prefix('admin/students')->controller(StudentController::class)->group(function () {
         Route::get('/', 'index')->middleware('can:students.access')->name('students.index');
         Route::get('/create', 'create')->middleware('can:students.import')->name('students.create');

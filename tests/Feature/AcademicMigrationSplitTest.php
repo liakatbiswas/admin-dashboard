@@ -48,7 +48,7 @@ class AcademicMigrationSplitTest extends TestCase
     public function test_fresh_installation_can_roll_back_and_reapply_the_seven_migrations(): void
     {
         $userCount = DB::table('users')->count();
-        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => 7, '--force' => true]));
+        $this->assertSame(0, Artisan::call('migrate:rollback', ['--step' => DB::table('migrations')->where('migration', '>=', array_key_first(AlignAcademicMigrationHistory::MIGRATIONS))->count(), '--force' => true]));
         foreach (['academic_years', 'classrooms', 'admission_applications', 'student_sequences', 'students', 'enrollments'] as $table) {
             $this->assertFalse(Schema::hasTable($table));
         }

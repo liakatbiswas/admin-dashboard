@@ -28,6 +28,8 @@ return [
         'academics.manage' => 'Manage Academic Structure',
         'applications.manage' => 'Review and Select Applications',
         'applications.admit' => 'Confirm New Admissions',
+        'students.transfers.manage' => 'Change Student Shift and Section',
+        'students.groups.manage' => 'Change Student Group',
         'students.rolls.manage' => 'Assign and Change Class Rolls',
         'students.credentials' => 'Reset Student and Guardian Passwords',
         'students.view' => 'View Student Records',

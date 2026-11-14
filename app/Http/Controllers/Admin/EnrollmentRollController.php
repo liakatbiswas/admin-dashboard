@@ -17,13 +17,14 @@ class EnrollmentRollController extends Controller
     {
         $data = $request->validate([
             'roll' => ['required', 'integer', 'between:1,9999'],
+            'expected_classroom_id' => ['required', 'integer'],
             'expected_roll' => ['required', 'integer', 'between:1,9999'],
             'reason' => ['required', 'string', 'max:1000'],
         ]);
         DB::transaction(function () use ($request, $student, $enrollment, $data): void {
             $classroom = Classroom::with('academicYear')->whereKey($enrollment->classroom_id)->lockForUpdate()->firstOrFail();
             $current = $student->enrollments()->whereKey($enrollment->id)->lockForUpdate()->firstOrFail();
-            if ($current->classroom_id !== $classroom->id || $current->roll !== (int) $data['expected_roll']) {
+            if ($current->classroom_id !== (int) $data['expected_classroom_id'] || $current->classroom_id !== $classroom->id || $current->roll !== (int) $data['expected_roll']) {
                 throw ValidationException::withMessages(['expected_roll' => __('The enrollment changed. Reload the student record and try again.')]);
             }
             if ($current->roll === (int) $data['roll']) {
