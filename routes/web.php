@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AcademicController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\ContactVerificationController;
 use App\Http\Controllers\Admin\EnrollmentChangeController;
 use App\Http\Controllers\Admin\EnrollmentRollController;
@@ -36,6 +37,10 @@ Route::get('/applications/{application}/receipt', [AdmissionController::class, '
 Route::get('/selected-students', [AdmissionController::class, 'selected'])->name('admissions.selected');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/attendance', [AttendanceController::class, 'index'])->middleware('can:attendance.access')->name('attendance.index');
+    Route::post('/admin/attendance', [AttendanceController::class, 'store'])->middleware('can:attendance.record')->name('attendance.store');
+    Route::get('/admin/attendance/{attendance}', [AttendanceController::class, 'show'])->middleware('can:attendance.access')->name('attendance.show');
+    Route::patch('/admin/attendance/{attendance}', [AttendanceController::class, 'update'])->middleware('can:attendance.correct')->name('attendance.update');
     Route::get('/admin/contact-verifications', [ContactVerificationController::class, 'index'])->middleware('can:users.verify')->name('contact-verifications.index');
     Route::post('/admin/contact-verifications/{user}', [ContactVerificationController::class, 'store'])->middleware(['can:users.verify', 'throttle:20,1'])->name('contact-verifications.store');
     Route::prefix('admin/academics')->controller(AcademicController::class)->group(function () {

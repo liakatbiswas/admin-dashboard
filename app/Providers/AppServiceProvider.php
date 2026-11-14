@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
             if (in_array($ability, ['guardians.manage', 'students.credentials'], true) && ! $user->hasAnyRole(['super-admin', 'admin', 'clerk'])) {
                 return false;
             }
-            if (in_array($ability, ['students.import', 'students.rolls.manage', 'students.transfers.manage', 'students.groups.manage'], true) && ! $user->hasAnyRole(['super-admin', 'admin', 'teacher', 'clerk'])) {
+            if (in_array($ability, ['students.import', 'students.rolls.manage', 'students.transfers.manage', 'students.groups.manage', 'attendance.view', 'attendance.record', 'attendance.correct'], true) && ! $user->hasAnyRole(['super-admin', 'admin', 'teacher', 'clerk'])) {
                 return false;
             }
 
@@ -48,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('attendance.access', fn (User $user) => $user->canAny(['attendance.view', 'attendance.record', 'attendance.correct']));
         Gate::define('academics.access', fn (User $user) => $user->canAny(['academics.view', 'academics.manage']));
         Gate::define('applications.access', fn (User $user) => $user->canAny(['applications.manage', 'applications.admit']));
         Gate::define('students.access', fn (User $user) => $user->canAny(['students.view', 'students.import', 'guardians.manage', 'students.credentials', 'students.rolls.manage', 'students.transfers.manage', 'students.groups.manage']));

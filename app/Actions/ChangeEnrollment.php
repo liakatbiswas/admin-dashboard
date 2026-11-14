@@ -36,7 +36,7 @@ class ChangeEnrollment
             $year = $source->academicYear->year;
             $this->check(substr($data['effective_date'], 0, 4) === (string) $year, 'effective_date', 'The effective date must be within the enrollment academic year.');
             $latestDate = $current->changes()->max('effective_date');
-            $this->check($latestDate === null || $data['effective_date'] >= $latestDate, 'effective_date', 'The effective date cannot precede the last enrollment change.');
+            $this->check($latestDate === null || $data['effective_date'] >= substr($latestDate, 0, 10), 'effective_date', 'The effective date cannot precede the last enrollment change.');
             $before = $this->snapshot($current, $source);
             $overrideReason = null;
 

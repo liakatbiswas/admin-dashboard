@@ -18,6 +18,25 @@ class Enrollment extends Model
         return ['roll' => 'integer'];
     }
 
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    /** @return array{classroom_id: int, academic_year: int, grade: int, shift: string, section: string, roll: int, group: ?string} */
+    public function placementOn(string $date): array
+    {
+        $nextChange = $this->getRelationValue('changes')->sortBy([['effective_date', 'asc'], ['id', 'asc']])
+            ->first(fn (EnrollmentChange $change) => $change->effective_date->toDateString() > $date);
+        if ($nextChange) {
+            return $nextChange->before;
+        }
+
+        return ['classroom_id' => $this->classroom_id, 'academic_year' => $this->classroom->academicYear->year,
+            'grade' => $this->classroom->grade, 'shift' => $this->classroom->shift, 'section' => $this->classroom->section,
+            'roll' => $this->roll, 'group' => $this->group];
+    }
+
     public function changes(): HasMany
     {
         return $this->hasMany(EnrollmentChange::class);

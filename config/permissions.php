@@ -17,6 +17,7 @@ return [
         'admission' => 'Admissions',
         'activity' => 'Activity Log',
         'academics' => 'Academic structure',
+        'attendance' => 'Attendance',
         'applications' => 'Admission applications',
         'students' => 'Students',
         'guardians' => 'Guardians',
@@ -24,6 +25,9 @@ return [
 
     // To add new permissions, define them here and run PermissionSeeder.
     'permissions' => [
+        'attendance.view' => 'View Attendance',
+        'attendance.record' => 'Record Daily Attendance',
+        'attendance.correct' => 'Correct Attendance',
         'academics.view' => 'View Academic Structure',
         'academics.manage' => 'Manage Academic Structure',
         'applications.manage' => 'Review and Select Applications',
