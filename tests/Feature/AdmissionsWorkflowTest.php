@@ -209,7 +209,7 @@ class AdmissionsWorkflowTest extends TestCase
         $first = $this->selected($room);
         $second = $this->selected($room);
         $officer = User::factory()->create()->assignRole('clerk');
-        $officer->givePermissionTo('applications.admit');
+        $officer->givePermissionTo(['applications.admit', 'students.rolls.manage']);
         $this->actingAs($officer)->post(route('applications.admit', $first), $this->placement($room))->assertOk();
         $this->post(route('applications.admit', $second), [...$this->placement($room), 'roll' => 2, 'override_reason' => 'Not authorized'])->assertSessionHasErrors('classroom_id');
         $this->assertSame(1, Student::count());

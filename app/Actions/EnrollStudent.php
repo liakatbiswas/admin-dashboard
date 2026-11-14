@@ -16,6 +16,8 @@ class EnrollStudent
     /** @return array{student: Student, password: ?string} */
     public function handle(User $actor, array $data, array $placement, ?AdmissionApplication $application = null, ?Student $existing = null): array
     {
+        abort_unless($actor->can('students.rolls.manage'), 403);
+
         return DB::transaction(function () use ($actor, $data, $placement, $application, $existing): array {
             $classroom = Classroom::with('academicYear')->whereKey($placement['classroom_id'])->lockForUpdate()->firstOrFail();
             $this->check($classroom->is_active, 'classroom_id', 'This classroom is inactive.');
@@ -78,6 +80,8 @@ class EnrollStudent
             }
             activity('admissions')->causedBy($actor)->performedOn($student)->withProperties([
                 'enrollment_id' => $enrollment->id, 'application_id' => $application?->id,
+                'roll' => $enrollment->roll, 'classroom_id' => $classroom->id,
+                'academic_year_id' => $classroom->academic_year_id, 'student_number' => $student->student_number,
                 'reason' => $placement['reason'], 'override_reason' => $enrollment->override_reason,
             ])->log($application ? 'Admission confirmed' : 'Existing student enrolled');
 

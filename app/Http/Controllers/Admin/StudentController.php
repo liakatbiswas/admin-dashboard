@@ -18,6 +18,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Spatie\Activitylog\Models\Activity;
 
 class StudentController extends Controller
 {
@@ -39,6 +40,8 @@ class StudentController extends Controller
     public function show(Student $student): View
     {
         return view('students.show', ['student' => $student->load(['user', 'guardianUser', 'enrollments.classroom.academicYear']),
+            'rollChanges' => Activity::where('subject_type', $student->getMorphClass())->where('subject_id', $student->id)
+                ->where('description', 'Class roll changed')->with('causer')->latest('id')->paginate(20),
             'classrooms' => Classroom::with('academicYear')->where('is_active', true)->get()]);
     }
 

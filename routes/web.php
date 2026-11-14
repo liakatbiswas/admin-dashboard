@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AcademicController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\ContactVerificationController;
+use App\Http\Controllers\Admin\EnrollmentRollController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StudentController;
@@ -52,6 +53,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{application}/publish', 'publish')->middleware('can:applications.manage')->name('applications.publish');
         Route::post('/{application}/admit', 'admit')->middleware('can:applications.admit')->name('applications.admit');
     });
+    Route::patch('/admin/students/{student}/enrollments/{enrollment}/roll', [EnrollmentRollController::class, 'update'])
+        ->scopeBindings()->middleware('can:students.rolls.manage')->name('students.roll.update');
     Route::prefix('admin/students')->controller(StudentController::class)->group(function () {
         Route::get('/', 'index')->middleware('can:students.access')->name('students.index');
         Route::get('/create', 'create')->middleware('can:students.import')->name('students.create');

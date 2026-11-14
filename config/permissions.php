@@ -28,6 +28,7 @@ return [
         'academics.manage' => 'Manage Academic Structure',
         'applications.manage' => 'Review and Select Applications',
         'applications.admit' => 'Confirm New Admissions',
+        'students.rolls.manage' => 'Assign and Change Class Rolls',
         'students.credentials' => 'Reset Student and Guardian Passwords',
         'students.view' => 'View Student Records',
         'students.import' => 'Add Existing Students',

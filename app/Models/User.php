@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
@@ -62,6 +63,9 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::saving(function (User $user): void {
+            if ($user->exists && $user->getOriginal('student_id') !== null && $user->isDirty('student_id')) {
+                throw ValidationException::withMessages(['student_id' => __('The permanent Student ID cannot be changed.')]);
+            }
             $user->email = $user->email === null ? null : Str::lower(trim($user->email));
             $user->phone = static::normalizePhone($user->phone);
             if ($user->exists && $user->isDirty('email')) {
